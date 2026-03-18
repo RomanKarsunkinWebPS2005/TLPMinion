@@ -153,7 +153,7 @@ keyword = "func" | "const" | "let" | "var" | "if" | "else" | "for" | "while" | "
 
 literal = number-literal | string-literal | boolean-literal ;
 
-number-literal = [ sign ] , integer-part , [ fractional-part ] , [ exponent ] ;
+number-literal = [ sign ] , integer-part , [ fractional-part ];
 sign = "-" | "+" ;
 integer-part = digit , { digit } ;
 fractional-part = "." , digit , { digit } ;
