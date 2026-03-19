@@ -1,3 +1,4 @@
+```
 // CircleSquare - Читает радиус круга и печатает его площадь
 
 const Pi: Float = 3.14159;
@@ -19,3 +20,5 @@ func main(): Void {
     print(area);
     print("\n");
 }
+
+```
