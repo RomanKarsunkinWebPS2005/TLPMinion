@@ -14,6 +14,7 @@ public class Lexer
         { "input", TokenType.Input },
         { "Int", TokenType.TypeInt },
         { "Float", TokenType.TypeFloat },
+        { "Void", TokenType.TypeVoid },
     };
 
     private static readonly Dictionary<char, char> SimpleEscapes = new()

@@ -18,6 +18,7 @@ public enum TokenType
 
     TypeInt,
     TypeFloat,
+    TypeVoid,
 
     Semicolon,
     Comma,

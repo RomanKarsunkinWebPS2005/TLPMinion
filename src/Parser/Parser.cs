@@ -281,7 +281,8 @@ public class Parser
         {
             TokenType.TypeInt => AdvanceAndReturn(Builtins.Int),
             TokenType.TypeFloat => AdvanceAndReturn(Builtins.Float),
-            _ => throw new UnexpectedLexemeException(token, [TokenType.TypeInt, TokenType.TypeFloat]),
+            TokenType.TypeVoid => AdvanceAndReturn(Builtins.Void),
+            _ => throw new UnexpectedLexemeException(token, [TokenType.TypeInt, TokenType.TypeFloat, TokenType.TypeVoid]),
         };
     }
 

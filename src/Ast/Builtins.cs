@@ -11,6 +11,7 @@ public static class Builtins
     public const string Input = "input";
     public const string Int = "Int";
     public const string Float = "Float";
+    public const string Void = "Void";
 
     public static readonly IReadOnlyList<BuiltinFunction> Functions =
     [
@@ -40,5 +41,6 @@ public static class Builtins
     [
         new(Int),
         new(Float),
+        new(Void),
     ];
 }
