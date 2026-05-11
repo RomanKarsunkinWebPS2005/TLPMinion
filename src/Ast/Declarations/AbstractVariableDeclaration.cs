@@ -8,4 +8,6 @@ public abstract class AbstractVariableDeclaration : Declaration
     }
 
     public string Name { get; }
+
+    public abstract string TypeName { get; }
 }

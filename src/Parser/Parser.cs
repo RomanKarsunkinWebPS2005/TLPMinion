@@ -1,6 +1,7 @@
 using TLPMinion.Ast;
 using TLPMinion.Ast.Declarations;
 using TLPMinion.Ast.Expressions;
+using TLPMinion.Ast.Statements;
 using TLPMinion.Lexemes;
 
 namespace TLPMinion.Parser;
@@ -16,21 +17,20 @@ public class Parser
 
     public Expression ParseProgram()
     {
-        List<Declaration> declarations = [];
-        List<Expression> expressions = [];
+        List<ScopeItem> members = [];
 
         while (!Is(TokenType.EndOfFile))
         {
             if (IsDeclarationStart(_tokens.Peek().Type))
             {
-                declarations.Add(ParseDeclaration());
+                members.Add(new DeclarationScopeItem(ParseDeclaration()));
                 continue;
             }
 
-            expressions.Add(ParseStatementExpression());
+            members.Add(new StatementScopeItem(ParseStatementExpression()));
         }
 
-        return new ScopeExpression(declarations, expressions);
+        return new ScopeExpression(members);
     }
 
     private Declaration ParseDeclaration()
@@ -70,7 +70,12 @@ public class Parser
         string typeName = ParseTypeName();
 
         Expression initializer;
-        if (Match(TokenType.Assign))
+        if (declarationToken == TokenType.Let)
+        {
+            Expect(TokenType.Assign);
+            initializer = ParseExpression();
+        }
+        else if (Match(TokenType.Assign))
         {
             initializer = ParseExpression();
         }
@@ -80,7 +85,8 @@ public class Parser
         }
 
         Expect(TokenType.Semicolon);
-        return new VariableDeclaration(name, typeName, initializer);
+        bool isMutable = declarationToken == TokenType.Var;
+        return new VariableDeclaration(name, typeName, initializer, isMutable);
     }
 
     private Expression ParseStatementExpression()
@@ -90,15 +96,56 @@ public class Parser
             return ParseScopeBody();
         }
 
+        if (Is(TokenType.Print))
+        {
+            PrintStatement print = ParsePrintStatement();
+            Expect(TokenType.Semicolon);
+            return print;
+        }
+
+        if (Is(TokenType.Input))
+        {
+            InputStatement input = ParseInputStatement();
+            Expect(TokenType.Semicolon);
+            return input;
+        }
+
+        // assignment = identifier , "=" , expression , ";"
+        if (Is(TokenType.Identifier) && _tokens.Peek(1).Type == TokenType.Assign)
+        {
+            string name = ExpectIdentifier();
+            Expect(TokenType.Assign);
+            Expression rhs = ParseExpression();
+            Expect(TokenType.Semicolon);
+            return new AssignmentExpression(new IdentifierExpression(name), rhs);
+        }
+
         Expression expression = ParseExpression();
         Expect(TokenType.Semicolon);
         return expression;
     }
 
+    private PrintStatement ParsePrintStatement()
+    {
+        Expect(TokenType.Print);
+        Expect(TokenType.OpenParenthesis);
+        Expression argument = ParseExpression();
+        Expect(TokenType.CloseParenthesis);
+        return new PrintStatement(argument);
+    }
+
+    private InputStatement ParseInputStatement()
+    {
+        Expect(TokenType.Input);
+        Expect(TokenType.OpenParenthesis);
+        string name = ExpectIdentifier();
+        Expect(TokenType.CloseParenthesis);
+        return new InputStatement(new IdentifierExpression(name));
+    }
+
     private ScopeExpression ParseScopeBody()
     {
-        List<Declaration> declarations = [];
-        List<Expression> expressions = [];
+        List<ScopeItem> members = [];
 
         while (!Is(TokenType.CloseBrace))
         {
@@ -109,16 +156,16 @@ public class Parser
 
             if (IsDeclarationStart(_tokens.Peek().Type))
             {
-                declarations.Add(ParseDeclaration());
+                members.Add(new DeclarationScopeItem(ParseDeclaration()));
             }
             else
             {
-                expressions.Add(ParseStatementExpression());
+                members.Add(new StatementScopeItem(ParseStatementExpression()));
             }
         }
 
         Expect(TokenType.CloseBrace);
-        return new ScopeExpression(declarations, expressions);
+        return new ScopeExpression(members);
     }
 
     private Expression ParseExpression()
@@ -131,6 +178,12 @@ public class Parser
         Expression left = ParseAdditiveExpression();
         if (Match(TokenType.Assign))
         {
+            if (left is not IdentifierExpression)
+            {
+                throw new InvalidOperationException(
+                    "Слева от '=' допускается только идентификатор.");
+            }
+
             Expression right = ParseAssignmentExpression();
             return new AssignmentExpression(left, right);
         }
@@ -212,8 +265,6 @@ public class Parser
                 Expect(TokenType.CloseParenthesis);
                 return expression;
             case TokenType.Identifier:
-            case TokenType.Print:
-            case TokenType.Input:
                 return ParseNameExpression();
             default:
                 throw new UnexpectedLexemeException(
@@ -222,8 +273,6 @@ public class Parser
                         TokenType.IntLiteral,
                         TokenType.FloatLiteral,
                         TokenType.Identifier,
-                        TokenType.Print,
-                        TokenType.Input,
                         TokenType.OpenParenthesis,
                     ]
                 );
@@ -234,17 +283,12 @@ public class Parser
     {
         Token nameToken = _tokens.Peek();
         _tokens.Advance();
-        string name = nameToken.Value?.ToString() ?? nameToken.Type switch
-        {
-            TokenType.Print => Builtins.Print,
-            TokenType.Input => Builtins.Input,
-            _ => string.Empty,
-        };
-
-        if (string.IsNullOrEmpty(name))
+        if (nameToken.Type != TokenType.Identifier || nameToken.Value == null)
         {
             throw new UnexpectedLexemeException(nameToken, TokenType.Identifier);
         }
+
+        string name = nameToken.Value.ToString();
 
         if (!Match(TokenType.OpenParenthesis))
         {

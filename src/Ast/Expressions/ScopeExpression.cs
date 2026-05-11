@@ -1,18 +1,13 @@
-using TLPMinion.Ast.Declarations;
-
 namespace TLPMinion.Ast.Expressions;
 
 public class ScopeExpression : Expression
 {
-    public ScopeExpression(List<Declaration> declarations, List<Expression> expressions)
+    public ScopeExpression(List<ScopeItem> members)
     {
-        Declarations = declarations;
-        Expressions = expressions;
+        Members = members;
     }
 
-    public List<Declaration> Declarations { get; }
-
-    public List<Expression> Expressions { get; }
+    public List<ScopeItem> Members { get; }
 
     public override void Accept(IAstVisitor visitor)
     {

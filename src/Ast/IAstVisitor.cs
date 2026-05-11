@@ -1,5 +1,6 @@
 ﻿using TLPMinion.Ast.Declarations;
 using TLPMinion.Ast.Expressions;
+using TLPMinion.Ast.Statements;
 
 namespace TLPMinion.Ast;
 
@@ -17,7 +18,11 @@ public interface IAstVisitor
 
     void Visit(IdentifierExpression expression);
 
+    void Visit(InputStatement statement);
+
     void Visit(LiteralExpression expression);
+
+    void Visit(PrintStatement statement);
 
     void Visit(ScopeExpression expression);
 

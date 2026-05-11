@@ -8,7 +8,7 @@ public class BuiltinFunctionParameter : AbstractParameterDeclaration
         TypeName = typeName;
     }
 
-    public string TypeName { get; }
+    public override string TypeName { get; }
 
     public override void Accept(IAstVisitor visitor)
     {

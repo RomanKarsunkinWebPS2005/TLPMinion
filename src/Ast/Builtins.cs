@@ -13,29 +13,8 @@ public static class Builtins
     public const string Float = "Float";
     public const string Void = "Void";
 
-    public static readonly IReadOnlyList<BuiltinFunction> Functions =
-    [
-        new(
-            Print,
-            [new BuiltinFunctionParameter("value", Int)],
-            Int
-        ),
-        new(
-            Print,
-            [new BuiltinFunctionParameter("value", Float)],
-            Float
-        ),
-        new(
-            Input,
-            [new BuiltinFunctionParameter("type", Int)],
-            Int
-        ),
-        new(
-            Input,
-            [new BuiltinFunctionParameter("type", Float)],
-            Float
-        ),
-    ];
+    /// <summary>Список встроенных функций (пока пуст).</summary>
+    public static readonly IReadOnlyList<BuiltinFunction> Functions = [];
 
     public static readonly IReadOnlyList<BuiltinType> Types =
     [

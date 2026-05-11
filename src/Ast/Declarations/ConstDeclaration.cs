@@ -1,4 +1,5 @@
 using TLPMinion.Ast.Expressions;
+using TLPMinion.Runtime;
 
 namespace TLPMinion.Ast.Declarations;
 
@@ -11,9 +12,11 @@ public class ConstDeclaration : AbstractVariableDeclaration
         Initializer = initializer;
     }
 
-    public string TypeName { get; }
+    public override string TypeName { get; }
 
     public Expression Initializer { get; }
+
+    public Value? CompileTimeValue { get; set; }
 
     public override void Accept(IAstVisitor visitor)
     {

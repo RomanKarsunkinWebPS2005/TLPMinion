@@ -7,4 +7,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Parser\Parser.csproj" />
+    <ProjectReference Include="..\Semantics\Semantics.csproj" />
+    <ProjectReference Include="..\VMCodegen\VMCodegen.csproj" />
+    <ProjectReference Include="..\VirtualMachine\VirtualMachine.csproj" />
+    <ProjectReference Include="..\Runtime\Runtime.csproj" />
+  </ItemGroup>
+
 </Project>

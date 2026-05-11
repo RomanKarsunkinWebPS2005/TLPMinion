@@ -1,6 +1,10 @@
-﻿namespace Runtime;
+namespace TLPMinion.Runtime;
 
-public class Class1
+public sealed class VoidValue
 {
+    public static readonly VoidValue Value = new();
 
+    private VoidValue()
+    {
+    }
 }
