@@ -40,7 +40,7 @@ public sealed class Value : IEquatable<Value>
         {
             int i => i,
             double d => checked((int)d),
-            _ => throw new InvalidOperationException($"«Ì‡˜ÂÌËÂ ÌÂ ˆÂÎÓÂ: {_value}"),
+            _ => throw new InvalidOperationException($"–ó–Ω–∞—á–µ–Ω–∏–µ –Ω–µ —Ü–µ–ª–æ–µ: {_value}"),
         };
     }
 
@@ -50,7 +50,7 @@ public sealed class Value : IEquatable<Value>
         {
             int i => i,
             double d => d,
-            _ => throw new InvalidOperationException($"«Ì‡˜ÂÌËÂ ÌÂ ˜ËÒÎÓ: {_value}"),
+            _ => throw new InvalidOperationException($$"–ó–Ω–∞—á–µ–Ω–∏–µ –Ω–µ —á–∏—Å–ª–æ —Å –ø–ª–∞–≤–∞—é—â–µ–π —Ç–æ—á–∫–æ–π: {_value}"),
         };
     }
 
@@ -59,7 +59,7 @@ public sealed class Value : IEquatable<Value>
         return _value switch
         {
             string s => s,
-            _ => throw new InvalidOperationException($"«Ì‡˜ÂÌËÂ ÌÂ ÒÚÓÍ‡ ÓÔÂ‡Ì‰‡: {_value}"),
+            _ => throw new InvalidOperationException($"–ó–Ω–∞—á–µ–Ω–∏–µ –Ω–µ —Å—Ç—Ä–æ–∫–∞: {_value}"),
         };
     }
 
