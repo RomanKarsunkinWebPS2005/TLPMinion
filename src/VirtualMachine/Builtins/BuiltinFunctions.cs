@@ -26,6 +26,9 @@ public sealed class BuiltinFunctions
             case BuiltinFunctionCode.InputFloat:
                 InputFloat(stack);
                 break;
+            case BuiltinFunctionCode.InputString:
+                InputString(stack);
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(code), code, null);
         }
@@ -56,5 +59,11 @@ public sealed class BuiltinFunctions
         }
 
         stack.Push(new Value(parsed));
+    }
+
+    private void InputString(Stack<Value> stack)
+    {
+        string word = _environment.ReadWord();
+        stack.Push(new Value(word));
     }
 }

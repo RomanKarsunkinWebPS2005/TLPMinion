@@ -4,5 +4,6 @@ public enum ValueType
 {
     Int,
     Float,
+    String,
     Void,
 }

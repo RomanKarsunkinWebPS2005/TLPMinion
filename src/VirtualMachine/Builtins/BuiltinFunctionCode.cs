@@ -5,4 +5,5 @@ public enum BuiltinFunctionCode
     Print = 1,
     InputInt = 2,
     InputFloat = 3,
+    InputString = 4,
 }

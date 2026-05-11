@@ -121,6 +121,11 @@ public sealed class MinionVm
 
     private static Value Add(Value right, Value left)
     {
+        if (left.IsString() && right.IsString())
+        {
+            return new Value(left.AsString() + right.AsString());
+        }
+
         if (left.IsInt() && right.IsInt())
         {
             return new Value(left.AsInt() + right.AsInt());

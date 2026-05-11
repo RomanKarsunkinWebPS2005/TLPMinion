@@ -14,6 +14,7 @@ public class Lexer
         { "input", TokenType.Input },
         { "Int", TokenType.TypeInt },
         { "Float", TokenType.TypeFloat },
+        { "String", TokenType.TypeString },
         { "Void", TokenType.TypeVoid },
     };
 
@@ -55,6 +56,11 @@ public class Lexer
         if (char.IsAsciiDigit(c))
         {
             return ParseNumericLiteral();
+        }
+
+        if (c == '"')
+        {
+            return ParseStringLiteral();
         }
 
         switch (c)
@@ -216,6 +222,45 @@ public class Lexer
         }
 
         return ParseIntLiteral(integerPart);
+    }
+
+    private Token ParseStringLiteral()
+    {
+        _scanner.Advance();
+        StringBuilder sb = new();
+        while (!_scanner.IsEnd())
+        {
+            char p = _scanner.Peek();
+            if (p == '"')
+            {
+                _scanner.Advance();
+                return new Token(TokenType.StringLiteral, sb.ToString());
+            }
+
+            if (p == '\\')
+            {
+                _scanner.Advance();
+                if (_scanner.IsEnd())
+                {
+                    return new Token(TokenType.Error, "Незакрытая escape-последовательность в строке.");
+                }
+
+                char e = _scanner.Peek();
+                if (SimpleEscapes.TryGetValue(e, out char mapped))
+                {
+                    sb.Append(mapped);
+                    _scanner.Advance();
+                    continue;
+                }
+
+                return new Token(TokenType.Error, $"Неизвестная escape-последовательность: \\{e}");
+            }
+
+            sb.Append(p);
+            _scanner.Advance();
+        }
+
+        return new Token(TokenType.Error, "Незакрытая строковая константа.");
     }
 
     /// <summary>

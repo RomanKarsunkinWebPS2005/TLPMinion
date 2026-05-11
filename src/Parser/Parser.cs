@@ -259,6 +259,9 @@ public class Parser
             case TokenType.FloatLiteral:
                 _tokens.Advance();
                 return new LiteralExpression(Builtins.Float, token.Value?.ToString() ?? "0");
+            case TokenType.StringLiteral:
+                _tokens.Advance();
+                return new LiteralExpression(Builtins.String, token.Value?.ToString() ?? string.Empty);
             case TokenType.OpenParenthesis:
                 _tokens.Advance();
                 Expression expression = ParseExpression();
@@ -272,6 +275,7 @@ public class Parser
                     [
                         TokenType.IntLiteral,
                         TokenType.FloatLiteral,
+                        TokenType.StringLiteral,
                         TokenType.Identifier,
                         TokenType.OpenParenthesis,
                     ]
@@ -325,8 +329,9 @@ public class Parser
         {
             TokenType.TypeInt => AdvanceAndReturn(Builtins.Int),
             TokenType.TypeFloat => AdvanceAndReturn(Builtins.Float),
+            TokenType.TypeString => AdvanceAndReturn(Builtins.String),
             TokenType.TypeVoid => AdvanceAndReturn(Builtins.Void),
-            _ => throw new UnexpectedLexemeException(token, [TokenType.TypeInt, TokenType.TypeFloat, TokenType.TypeVoid]),
+            _ => throw new UnexpectedLexemeException(token, [TokenType.TypeInt, TokenType.TypeFloat, TokenType.TypeString, TokenType.TypeVoid]),
         };
     }
 
@@ -336,6 +341,7 @@ public class Parser
         {
             var t when t == Builtins.Int => new LiteralExpression(Builtins.Int, "0"),
             var t when t == Builtins.Float => new LiteralExpression(Builtins.Float, "0.0"),
+            var t when t == Builtins.String => new LiteralExpression(Builtins.String, string.Empty),
             _ => throw new InvalidOperationException($"Неподдерживаемый тип объявления '{typeName}'."),
         };
     }

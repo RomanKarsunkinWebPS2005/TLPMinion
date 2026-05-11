@@ -44,7 +44,7 @@ public class LexerTest
                 ]
             },
             {
-                "const let var print input Int Float",
+                "const let var print input Int Float String Void",
                 [
                     new Token(TokenType.Const),
                     new Token(TokenType.Let),
@@ -53,6 +53,8 @@ public class LexerTest
                     new Token(TokenType.Input),
                     new Token(TokenType.TypeInt),
                     new Token(TokenType.TypeFloat),
+                    new Token(TokenType.TypeString),
+                    new Token(TokenType.TypeVoid),
                 ]
             },
             {
@@ -114,6 +116,50 @@ public class LexerTest
                 "2147483648",
                 [
                     new Token(TokenType.Error, "2147483648"),
+                ]
+            },
+            {
+                "\"\"",
+                [
+                    new Token(TokenType.StringLiteral, string.Empty),
+                ]
+            },
+            {
+                "\"hello\"",
+                [
+                    new Token(TokenType.StringLiteral, "hello"),
+                ]
+            },
+            {
+                "\"hello\\\"world\"",
+                [
+                    new Token(TokenType.StringLiteral, "hello\"world"),
+                ]
+            },
+            {
+                "\"a\\\\b\"",
+                [
+                    new Token(TokenType.StringLiteral, "a\\b"),
+                ]
+            },
+            {
+                "\"line\\n\"",
+                [
+                    new Token(TokenType.StringLiteral, "line\n"),
+                ]
+            },
+            {
+                "\"abc",
+                [
+                    new Token(TokenType.Error, "Незакрытая строковая константа."),
+                ]
+            },
+            {
+                "\"x\\y\"",
+                [
+                    new Token(TokenType.Error, "Неизвестная escape-последовательность: \\y"),
+                    new Token(TokenType.Identifier, "y"),
+                    new Token(TokenType.Error, "Незакрытая строковая константа."),
                 ]
             },
         };

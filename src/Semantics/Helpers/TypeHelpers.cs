@@ -12,6 +12,7 @@ internal static class TypeHelpers
         {
             Builtins.Int => VType.Int,
             Builtins.Float => VType.Float,
+            Builtins.String => VType.String,
             Builtins.Void => VType.Void,
             _ => throw new InvalidOperationException($"Неизвестное имя типа '{name}'."),
         };

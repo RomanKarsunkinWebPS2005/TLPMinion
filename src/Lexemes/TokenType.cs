@@ -10,6 +10,7 @@ public enum TokenType
     Identifier,
     IntLiteral,
     FloatLiteral,
+    StringLiteral,
     Const,
     Let,
     Var,
@@ -18,6 +19,7 @@ public enum TokenType
 
     TypeInt,
     TypeFloat,
+    TypeString,
     TypeVoid,
 
     Semicolon,

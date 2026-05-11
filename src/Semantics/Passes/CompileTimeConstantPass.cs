@@ -15,7 +15,7 @@ public sealed class CompileTimeConstantPass : AbstractPass
     public override void Visit(ConstDeclaration declaration)
     {
         Value computed = Evaluate(declaration.Initializer);
-        VType got = computed.IsInt() ? VType.Int : VType.Float;
+        VType got = ValueToSemanticType(computed);
         TypeHelpers.AssertAssignable(got, TypeHelpers.ParseTypeName(declaration.TypeName), "const");
         declaration.CompileTimeValue = computed;
     }
@@ -28,15 +28,36 @@ public sealed class CompileTimeConstantPass : AbstractPass
             {
                 Builtins.Int => new Value(int.Parse(lit.Lexeme, CultureInfo.InvariantCulture)),
                 Builtins.Float => new Value(double.Parse(lit.Lexeme, CultureInfo.InvariantCulture)),
-                _ => throw new InvalidOperationException("В const допускаются только литералы Int и Float."),
+                Builtins.String => new Value(lit.Lexeme),
+                _ => throw new InvalidOperationException("В const допускаются только литералы Int, Float и String."),
             },
             IdentifierExpression id => EvalConstRef(id),
             UnaryExpression u => EvalUnary(u),
             BinaryExpression b => ApplyBinary(b.Operator, Evaluate(b.Left), Evaluate(b.Right)),
             _ => throw new InvalidOperationException(
                 "Инициализатор const должен вычисляться на этапе компиляции: " +
-                "литералы, ссылки на ранее объявленные const и числовые операторы (+, -, *, /, %, **)."),
+                "литералы, ссылки на ранее объявленные const, строковая конкатенация + и числовые операторы (+, -, *, /, %, **)."),
         };
+    }
+
+    private static VType ValueToSemanticType(Value v)
+    {
+        if (v.IsInt())
+        {
+            return VType.Int;
+        }
+
+        if (v.IsDouble())
+        {
+            return VType.Float;
+        }
+
+        if (v.IsString())
+        {
+            return VType.String;
+        }
+
+        throw new InvalidOperationException("Неподдерживаемое значение в const.");
     }
 
     private static Value EvalConstRef(IdentifierExpression id)
@@ -59,6 +80,11 @@ public sealed class CompileTimeConstantPass : AbstractPass
     private static Value EvalUnary(UnaryExpression u)
     {
         Value inner = Evaluate(u.Operand);
+        if (inner.IsString())
+        {
+            throw new InvalidOperationException("Унарные операторы недопустимы для строковых значений в const.");
+        }
+
         return u.Operator switch
         {
             UnaryOperator.Plus => inner,
@@ -71,6 +97,16 @@ public sealed class CompileTimeConstantPass : AbstractPass
 
     private static Value ApplyBinary(BinaryOperator op, Value l, Value r)
     {
+        if (op == BinaryOperator.Add && l.IsString() && r.IsString())
+        {
+            return new Value(l.AsString() + r.AsString());
+        }
+
+        if (l.IsString() || r.IsString())
+        {
+            throw new InvalidOperationException("Для строк в const допускается только конкатенация через +.");
+        }
+
         bool bothInt = l.IsInt() && r.IsInt();
         return op switch
         {

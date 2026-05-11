@@ -111,6 +111,12 @@ public sealed class MinionVmCodegen : IAstVisitor
             return;
         }
 
+        if (expression.TypeName == Builtins.String)
+        {
+            _builder.Append(new Instruction(InstructionCode.Push, new Value(expression.Lexeme)));
+            return;
+        }
+
         throw new NotSupportedException($"Литерал типа '{expression.TypeName}'.");
     }
 
@@ -187,8 +193,12 @@ public sealed class MinionVmCodegen : IAstVisitor
 
     private static BuiltinFunctionCode MapInput(IdentifierExpression id)
     {
-        return id.Variable.TypeName == Builtins.Int
-            ? BuiltinFunctionCode.InputInt
-            : BuiltinFunctionCode.InputFloat;
+        return id.Variable.TypeName switch
+        {
+            Builtins.Int => BuiltinFunctionCode.InputInt,
+            Builtins.Float => BuiltinFunctionCode.InputFloat,
+            Builtins.String => BuiltinFunctionCode.InputString,
+            _ => throw new NotSupportedException($"input для типа '{id.Variable.TypeName}' не поддержан."),
+        };
     }
 }

@@ -78,6 +78,7 @@ public sealed class TypeCheckingPass : AbstractPass
         VType r = expression.Right.ResultType;
         expression.ResultType = expression.Operator switch
         {
+            BinaryOperator.Add when l == VType.String && r == VType.String => VType.String,
             BinaryOperator.Add or BinaryOperator.Subtract or BinaryOperator.Multiply or BinaryOperator.Divide =>
                 TypeHelpers.SameNumericArithmeticType(l, r),
             BinaryOperator.Modulo => TypeHelpers.ModuloType(l, r),
@@ -113,9 +114,9 @@ public sealed class TypeCheckingPass : AbstractPass
         }
 
         VType t = TypeHelpers.ParseTypeName(decl.TypeName);
-        if (t != VType.Int && t != VType.Float)
+        if (t != VType.Int && t != VType.Float && t != VType.String)
         {
-            throw new InvalidOperationException("input допустим только для переменных типа Int или Float.");
+            throw new InvalidOperationException("input допустим только для переменных типа Int, Float или String.");
         }
 
         statement.ResultType = VType.Void;
@@ -125,9 +126,9 @@ public sealed class TypeCheckingPass : AbstractPass
     {
         statement.Argument.Accept(this);
         VType t = statement.Argument.ResultType;
-        if (t != VType.Int && t != VType.Float)
+        if (t != VType.Int && t != VType.Float && t != VType.String)
         {
-            throw new InvalidOperationException("print ожидает аргумент типа Int или Float.");
+            throw new InvalidOperationException("print ожидает аргумент типа Int, Float или String.");
         }
 
         statement.ResultType = VType.Void;
