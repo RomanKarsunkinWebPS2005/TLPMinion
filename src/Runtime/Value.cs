@@ -50,7 +50,7 @@ public sealed class Value : IEquatable<Value>
         {
             int i => i,
             double d => d,
-            _ => throw new InvalidOperationException($$"Значение не число с плавающей точкой: {_value}"),
+            _ => throw new InvalidOperationException($"Значение не число с плавающей точкой: {_value}"),
         };
     }
 
