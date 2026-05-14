@@ -1,10 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <RootNamespace>Interpreter.IntegrationTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,10 +17,17 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="TLPMinion.Interpreter" />
+    <Using Include="TLPMinion.Parser" />
+    <Using Include="TLPMinion.Runtime" />
+    <Using Include="TLPMinion.Tests.TestLibrary" />
+    <Using Include="TLPMinion.Tests.TestLibrary.TestDoubles" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Lexemes\Lexemes.csproj" />
+    <ProjectReference Include="..\..\src\Interpreter\Interpreter.csproj" />
+    <ProjectReference Include="..\..\src\Parser\Parser.csproj" />
+    <ProjectReference Include="..\TestLibrary\TestLibrary.csproj" />
   </ItemGroup>
 
 </Project>

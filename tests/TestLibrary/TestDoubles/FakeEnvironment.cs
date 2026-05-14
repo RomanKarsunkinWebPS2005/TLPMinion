@@ -11,6 +11,8 @@ public sealed class FakeEnvironment : IEnvironment
 
     public string Output => _output.ToString();
 
+    public string OutputBuffer => Output;
+
     public void AddInput(string text)
     {
         foreach (string word in text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
