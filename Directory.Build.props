@@ -1,5 +1,10 @@
 <Project>
     <PropertyGroup>
+        <!-- Учебный интерпретатор: C# 14 и .NET 10 (см. требования курса). -->
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>14</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
         <NuGetAudit>false</NuGetAudit>
         <WarningsAsErrors>true</WarningsAsErrors>
         <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>

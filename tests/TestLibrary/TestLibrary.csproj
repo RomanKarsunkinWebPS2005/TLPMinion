@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsTestProject>false</IsTestProject>
+
+    <RootNamespace>TLPMinion.Tests.TestLibrary</RootNamespace>
+    <AssemblyName>TLPMinion.Tests.TestLibrary</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\VirtualMachine\VirtualMachine.csproj" />
+  </ItemGroup>
+
+</Project>
