@@ -2,6 +2,7 @@
 /.vscode/
 /.idea/
 *.sln.DotSettings.user
+/.vs/
 
 # Build results
 /src/*/bin/
@@ -20,3 +21,6 @@ x86/
 
 # Sandbox directory
 sandbox/
+reference/
+tests/coverage/
+tests/coverage-report/

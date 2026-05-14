@@ -1,0 +1,13 @@
+print(42);
+
+const Pi: Float = 3.14;
+
+print(Pi);
+
+var x: Int = 5;
+let y: Int = 7;
+
+print(x * y);
+
+x = 7;
+print(x * y);
