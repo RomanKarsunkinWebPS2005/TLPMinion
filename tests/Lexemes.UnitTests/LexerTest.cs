@@ -4,7 +4,7 @@ namespace Lexemes.UnitTests;
 
 public class LexerTest
 {
-    [Theory]
+    [CulturedTheory(["ru-RU", "en-US"])]
     [MemberData(nameof(GetTokenizeIdentifiersAndKeywordsData))]
     [MemberData(nameof(GetTokenizeLiteralsData))]
     [MemberData(nameof(GetTokenizeOperatorsPunctuationData))]
