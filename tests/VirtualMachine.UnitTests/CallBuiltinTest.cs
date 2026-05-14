@@ -92,6 +92,16 @@ public sealed class CallBuiltinTest
                 "3.25",
                 new Value(3.25)
             },
+            {
+                [
+                    new Instruction(InstructionCode.CallBuiltin, (int)BuiltinFunctionCode.InputString),
+                    new Instruction(InstructionCode.StoreResult),
+                    new Instruction(InstructionCode.Push, 0),
+                    new Instruction(InstructionCode.Halt),
+                ],
+                "token-with-dashes",
+                new Value("token-with-dashes")
+            },
         };
     }
 
@@ -119,6 +129,23 @@ public sealed class CallBuiltinTest
         FakeEnvironment environment = new();
         MinionVm vm = new(environment, [
             new Instruction(InstructionCode.CallBuiltin, (int)BuiltinFunctionCode.InputInt),
+            new Instruction(InstructionCode.StoreResult),
+            new Instruction(InstructionCode.Push, 0),
+            new Instruction(InstructionCode.Halt),
+        ]);
+
+        Assert.Throws<EndOfStreamException>(() =>
+        {
+            _ = vm.RunProgram();
+        });
+    }
+
+    [Fact]
+    public void InputString_throws_when_no_input_word()
+    {
+        FakeEnvironment environment = new();
+        MinionVm vm = new(environment, [
+            new Instruction(InstructionCode.CallBuiltin, (int)BuiltinFunctionCode.InputString),
             new Instruction(InstructionCode.StoreResult),
             new Instruction(InstructionCode.Push, 0),
             new Instruction(InstructionCode.Halt),

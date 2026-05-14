@@ -33,6 +33,35 @@ public sealed class BuiltinFunctionsTest
     }
 
     [Fact]
+    public void Input_assigns_string_from_word()
+    {
+        FakeEnvironment environment = new();
+        environment.AddInput("hello");
+        MinionInterpreter interpreter = new(environment);
+        Value result = interpreter.Execute("""
+            var s: String;
+            input(s);
+            s;
+            """);
+        Assert.Equal(new Value("hello"), result);
+        Assert.Equal(0, interpreter.ExitCode);
+    }
+
+    [Fact]
+    public void Input_string_when_no_words_throws_end_of_stream()
+    {
+        FakeEnvironment environment = new();
+        MinionInterpreter interpreter = new(environment);
+        Assert.Throws<EndOfStreamException>(() =>
+        {
+            _ = interpreter.Execute("""
+                var s: String;
+                input(s);
+                """);
+        });
+    }
+
+    [Fact]
     public void Input_invalid_int_throws_format_exception()
     {
         FakeEnvironment environment = new();
@@ -87,6 +116,21 @@ public sealed class BuiltinFunctionsTest
             _ = interpreter.Execute("""
                 const c: Int = 0;
                 input(c);
+                """);
+        });
+    }
+
+    [Fact]
+    public void Input_into_let_string_throws_semantic_error()
+    {
+        FakeEnvironment environment = new();
+        environment.AddInput("x");
+        MinionInterpreter interpreter = new(environment);
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            _ = interpreter.Execute("""
+                let s: String = "";
+                input(s);
                 """);
         });
     }

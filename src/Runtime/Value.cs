@@ -36,7 +36,7 @@ public sealed class Value : IEquatable<Value>
 
     public bool IsString() => _value is string;
 
-     public int AsInt()
+    public int AsInt()
     {
         return _value switch
         {

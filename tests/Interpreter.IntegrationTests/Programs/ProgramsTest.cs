@@ -20,6 +20,7 @@ public class ProgramsTest
         {
             { "smoke.minion", "", 0 },
             { "print_literal.minion", "423.143549", 0 },
+            { "string_concat.minion", "abcd", 0 },
         };
     }
 }

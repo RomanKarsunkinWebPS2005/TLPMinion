@@ -30,6 +30,19 @@ public sealed class VariablesTest
     }
 
     [Fact]
+    public void Const_string_literal_and_print()
+    {
+        FakeEnvironment environment = new();
+        MinionInterpreter interpreter = new(environment);
+        _ = interpreter.Execute("""
+            const S: String = "hi";
+            print(S);
+            """);
+        Assert.Equal("hi", environment.OutputBuffer);
+        Assert.Equal(0, interpreter.ExitCode);
+    }
+
+    [Fact]
     public void Assignment_to_let_throws()
     {
         FakeEnvironment environment = new();

@@ -123,6 +123,17 @@ public sealed class EvaluationTest
                 ],
                 new Value(-1.25)
             },
+            {
+                [
+                    new Instruction(InstructionCode.Push, new Value("left")),
+                    new Instruction(InstructionCode.Push, new Value("right")),
+                    new Instruction(InstructionCode.Add),
+                    new Instruction(InstructionCode.StoreResult),
+                    new Instruction(InstructionCode.Push, 0),
+                    new Instruction(InstructionCode.Halt),
+                ],
+                new Value("leftright")
+            },
         };
     }
 

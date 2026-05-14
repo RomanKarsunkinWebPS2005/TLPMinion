@@ -6,6 +6,7 @@
 
 - [x] Минимальное выражение без вывода (`smoke.minion`)
 - [x] Сценарий `print_literal.minion`
+- [x] Строковая конкатенация из файла (`string_concat.minion`)
 
 ---
 
@@ -23,16 +24,19 @@
 - [x] `print` целого литерала (`print_literal.minion`)
 - [x] Несколько вызовов `print` в одной программе (`print_literal.minion`)
 - [x] `print` для `Float`
+- [x] `print` для `String` (литералы и конкатенация — `StringsTest`, файл `string_concat.minion`)
 
 ### Ввод
 
 - [x] `input` в `var` типа `Int` или `Float`
+- [x] `input` в `var` типа `String` (слово без преобразования)
 - [x] Некорректное слово при `input` → ошибка выполнения
 - [x] Конец очереди в `FakeEnvironment` при `input` → согласованное исключение
 
 ### Негативы
 
 - [x] `input` в `let` или `const` → ошибка семантики
+- [x] `input` в `let` типа `String` → ошибка семантики
 
 ---
 
@@ -70,9 +74,40 @@
 
 ---
 
+## Строки (`StringsTest.cs`)
+
+Литералы в `"…"`, конкатенация `+` только для двух `String`, тип `String` во `var` / `let` / `const`, `print` / `input`.
+
+### Литералы и конкатенация
+
+- [x] Вывод строкового литерала
+- [x] Конкатенация нескольких литералов в `print`
+- [x] Escape `\n` в литерале (реальный перевод строки в выводе)
+- [x] `const` из строковых литералов и цепочка `+` с ссылкой на другой `const`
+
+### Переменные
+
+- [x] `let s: String = …` и конкатенация с литералом в `print`
+- [x] `var t: String` с присваиванием и конкатенацией
+- [x] `const S: String = …` и печать (`VariablesTest`)
+
+### Ввод
+
+- [x] `input` в `var` типа `String` (`BuiltinFunctionsTest`)
+
+### Негативы (семантика / типы)
+
+- [x] `String` + `Int`
+- [x] `String` с оператором `*`
+- [x] Унарный `-` для строкового литерала
+- [x] Инициализация `var s: String` числом; присваивание в `String` числа
+- [x] `const` со строковым типом и недопустимым оператором в инициализаторе (`*`)
+
+---
+
 ## Переменные и присваивание (`VariablesTest.cs`)
 
-`const`, `let`, `var`; типы: `Int`, `Float`, `Void`; область файла и вложенные блоки `{ }`.
+`const`, `let`, `var`; типы: `Int`, `Float`, `String`, `Void`; область файла и вложенные блоки `{ }`.
 
 ### Объявления
 
@@ -80,6 +115,7 @@
 - [x] `let y: Int = …` и использование (`print_literal.minion`)
 - [x] `var x: Float;` с последующим присваиванием (`Var_float_without_explicit_initializer_then_assign_and_print`)
 - [x] `const` с литералом `Int` (`Const_int_literal_and_print`)
+- [x] `const` с литералом `String` (`Const_string_literal_and_print`)
 
 ### Присваивание
 
