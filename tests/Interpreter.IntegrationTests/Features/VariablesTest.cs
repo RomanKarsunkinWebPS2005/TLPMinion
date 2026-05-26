@@ -43,6 +43,19 @@ public sealed class VariablesTest
     }
 
     [Fact]
+    public void Let_int_without_initializer_uses_default_and_print()
+    {
+        FakeEnvironment environment = new();
+        MinionInterpreter interpreter = new(environment);
+        _ = interpreter.Execute("""
+            let n: Int;
+            print(n);
+            """);
+        Assert.Equal("0", environment.OutputBuffer);
+        Assert.Equal(0, interpreter.ExitCode);
+    }
+
+    [Fact]
     public void Assignment_to_let_throws()
     {
         FakeEnvironment environment = new();

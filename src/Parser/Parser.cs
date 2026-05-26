@@ -70,12 +70,7 @@ public class Parser
         string typeName = ParseTypeName();
 
         Expression initializer;
-        if (declarationToken == TokenType.Let)
-        {
-            Expect(TokenType.Assign);
-            initializer = ParseExpression();
-        }
-        else if (Match(TokenType.Assign))
+        if (Match(TokenType.Assign))
         {
             initializer = ParseExpression();
         }
