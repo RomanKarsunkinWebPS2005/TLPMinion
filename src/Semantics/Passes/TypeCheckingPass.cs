@@ -94,8 +94,28 @@ public sealed class TypeCheckingPass : AbstractPass
             argument.Accept(this);
         }
 
-        throw new InvalidOperationException(
-            $"Вызов функции '{expression.Name}' не поддержан");
+        BuiltinFunction? builtin = FindBuiltin(expression.Name);
+        if (builtin is null)
+        {
+            throw new InvalidOperationException(
+                $"Вызов функции '{expression.Name}' не поддержан");
+        }
+
+        if (expression.Arguments.Count != builtin.Parameters.Count)
+        {
+            throw new InvalidOperationException(
+                $"Функция '{expression.Name}' ожидает {builtin.Parameters.Count} аргумент(ов), передано {expression.Arguments.Count}.");
+        }
+
+        for (int i = 0; i < builtin.Parameters.Count; i++)
+        {
+            AbstractParameterDeclaration parameter = builtin.Parameters[i];
+            VType expected = TypeHelpers.ParseTypeName(parameter.TypeName);
+            TypeHelpers.AssertAssignable(expression.Arguments[i].ResultType, expected, parameter.Name);
+        }
+
+        expression.Function = builtin;
+        expression.ResultType = TypeHelpers.ParseTypeName(builtin.ReturnTypeName);
     }
 
     public override void Visit(InputStatement statement)
@@ -154,5 +174,18 @@ public sealed class TypeCheckingPass : AbstractPass
         }
 
         expression.ResultType = t;
+    }
+
+    private static BuiltinFunction? FindBuiltin(string name)
+    {
+        foreach (BuiltinFunction builtin in Builtins.Functions)
+        {
+            if (builtin.Name == name)
+            {
+                return builtin;
+            }
+        }
+
+        return null;
     }
 }

@@ -156,4 +156,60 @@ public sealed class CallBuiltinTest
             _ = vm.RunProgram();
         });
     }
+
+    [Fact]
+    public void StringLength_returns_code_unit_count()
+    {
+        FakeEnvironment environment = new();
+        MinionVm vm = new(environment, [
+            new Instruction(InstructionCode.Push, "abc"),
+            new Instruction(InstructionCode.CallBuiltin, (int)BuiltinFunctionCode.StringLength),
+            new Instruction(InstructionCode.StoreResult),
+            new Instruction(InstructionCode.Push, 0),
+            new Instruction(InstructionCode.Halt),
+        ]);
+        Value result = vm.RunProgram();
+
+        Assert.Equal(0, vm.ExitCode);
+        Assert.Equal(new Value(3), result);
+    }
+
+    [Fact]
+    public void StringSubstring_extracts_by_start_and_count()
+    {
+        FakeEnvironment environment = new();
+        MinionVm vm = new(environment, [
+            new Instruction(InstructionCode.Push, "hello"),
+            new Instruction(InstructionCode.Push, 1),
+            new Instruction(InstructionCode.Push, 3),
+            new Instruction(InstructionCode.CallBuiltin, (int)BuiltinFunctionCode.StringSubstring),
+            new Instruction(InstructionCode.StoreResult),
+            new Instruction(InstructionCode.Push, 0),
+            new Instruction(InstructionCode.Halt),
+        ]);
+        Value result = vm.RunProgram();
+
+        Assert.Equal(0, vm.ExitCode);
+        Assert.Equal(new Value("ell"), result);
+    }
+
+    [Fact]
+    public void StringSubstring_throws_when_out_of_range()
+    {
+        FakeEnvironment environment = new();
+        MinionVm vm = new(environment, [
+            new Instruction(InstructionCode.Push, "ab"),
+            new Instruction(InstructionCode.Push, 0),
+            new Instruction(InstructionCode.Push, 5),
+            new Instruction(InstructionCode.CallBuiltin, (int)BuiltinFunctionCode.StringSubstring),
+            new Instruction(InstructionCode.StoreResult),
+            new Instruction(InstructionCode.Push, 0),
+            new Instruction(InstructionCode.Halt),
+        ]);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        {
+            _ = vm.RunProgram();
+        });
+    }
 }

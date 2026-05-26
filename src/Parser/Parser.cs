@@ -257,6 +257,10 @@ public class Parser
                 Expression expression = ParseExpression();
                 Expect(TokenType.CloseParenthesis);
                 return expression;
+            case TokenType.Length:
+                return ParseBuiltinFunctionCall(TokenType.Length, Builtins.Length, 1);
+            case TokenType.Substring:
+                return ParseBuiltinFunctionCall(TokenType.Substring, Builtins.Substring, 3);
             case TokenType.Identifier:
                 return ParseNameExpression();
             default:
@@ -267,10 +271,32 @@ public class Parser
                         TokenType.FloatLiteral,
                         TokenType.StringLiteral,
                         TokenType.Identifier,
+                        TokenType.Length,
+                        TokenType.Substring,
                         TokenType.OpenParenthesis,
                     ]
                 );
         }
+    }
+
+    /// <summary>Разбор <c>builtin-fanction-call</c> </summary>
+    private Expression ParseBuiltinFunctionCall(TokenType keyword, string name, int requiredArguments)
+    {
+        Expect(keyword);
+        Expect(TokenType.OpenParenthesis);
+        List<Expression> arguments = [];
+        if (requiredArguments > 0)
+        {
+            arguments.Add(ParseExpression());
+            for (int i = 1; i < requiredArguments; i++)
+            {
+                Expect(TokenType.Comma);
+                arguments.Add(ParseExpression());
+            }
+        }
+
+        Expect(TokenType.CloseParenthesis);
+        return new FunctionCallExpression(name, arguments);
     }
 
     private Expression ParseNameExpression()
