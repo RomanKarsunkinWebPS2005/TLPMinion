@@ -105,16 +105,6 @@ public class Parser
             return input;
         }
 
-        // assignment = identifier , "=" , expression , ";"
-        if (Is(TokenType.Identifier) && _tokens.Peek(1).Type == TokenType.Assign)
-        {
-            string name = ExpectIdentifier();
-            Expect(TokenType.Assign);
-            Expression rhs = ParseExpression();
-            Expect(TokenType.Semicolon);
-            return new AssignmentExpression(new IdentifierExpression(name), rhs);
-        }
-
         Expression expression = ParseExpression();
         Expect(TokenType.Semicolon);
         return expression;
@@ -170,21 +160,26 @@ public class Parser
 
     private Expression ParseAssignmentExpression()
     {
-        Expression left = ParseAdditiveExpression();
+        Expression left = ParseTernaryExpression();
         if (Match(TokenType.Assign))
         {
-            if (left is not IdentifierExpression)
-            {
-                throw new InvalidOperationException(
-                    "Слева от '=' допускается только идентификатор.");
-            }
-
             Expression right = ParseAssignmentExpression();
             return new AssignmentExpression(left, right);
         }
 
         return left;
     }
+
+    // Цепочка заглушек для метода ParseAssignmentExpression(чтобы соответсовало EBNF)
+    private Expression ParseTernaryExpression() => ParseLogicalOrExpression();
+
+    private Expression ParseLogicalOrExpression() => ParseLogicalAndExpression();
+
+    private Expression ParseLogicalAndExpression() => ParseEqualityExpression();
+
+    private Expression ParseEqualityExpression() => ParseRelationalExpression();
+
+    private Expression ParseRelationalExpression() => ParseAdditiveExpression();
 
     private Expression ParseAdditiveExpression()
     {
