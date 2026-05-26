@@ -16,6 +16,8 @@ public enum TokenType
     Var,
     Print,
     Input,
+    Length,
+    Substring,
 
     TypeInt,
     TypeFloat,

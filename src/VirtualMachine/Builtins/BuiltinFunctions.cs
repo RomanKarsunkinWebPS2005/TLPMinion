@@ -29,6 +29,12 @@ public sealed class BuiltinFunctions
             case BuiltinFunctionCode.InputString:
                 InputString(stack);
                 break;
+            case BuiltinFunctionCode.StringLength:
+                StringLength(stack);
+                break;
+            case BuiltinFunctionCode.StringSubstring:
+                StringSubstring(stack);
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(code), code, null);
         }
@@ -65,5 +71,19 @@ public sealed class BuiltinFunctions
     {
         string word = _environment.ReadWord();
         stack.Push(new Value(word));
+    }
+
+    private static void StringLength(Stack<Value> stack)
+    {
+        string s = stack.Pop().AsString();
+        stack.Push(new Value(s.Length));
+    }
+
+    private static void StringSubstring(Stack<Value> stack)
+    {
+        int count = stack.Pop().AsInt();
+        int start = stack.Pop().AsInt();
+        string s = stack.Pop().AsString();
+        stack.Push(new Value(s.Substring(start, count)));
     }
 }

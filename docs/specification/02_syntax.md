@@ -105,7 +105,9 @@ argument-list = expression , { "," , expression } ;
 
 builtin-fanction-call = "abs" , "(" , expression , ")"
                         | "min" , "(" , expression , "," , expression , ")"
-                        | "max" , "(" , expression , "," , expression , ")" ;
+                        | "max" , "(" , expression , "," , expression , ")"
+                        | "length" , "(" , expression , ")"
+                        | "substring" , "(" , expression , "," , expression , "," , expression , ")" ;
 
 (* 5. Литералы *)
 literal = number-literal | string-literal | boolean-literal ;

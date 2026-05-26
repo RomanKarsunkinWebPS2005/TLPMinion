@@ -73,7 +73,18 @@ public sealed class MinionVmCodegen : IAstVisitor
 
     public void Visit(FunctionCallExpression expression)
     {
-        throw new NotSupportedException($"Вызов '{expression.Name}' не поддержан");
+        if (expression.Function is not BuiltinFunction)
+        {
+            throw new NotSupportedException($"Вызов '{expression.Name}' не поддержан");
+        }
+
+        foreach (Expression argument in expression.Arguments)
+        {
+            argument.Accept(this);
+        }
+
+        BuiltinFunctionCode code = MapBuiltinFunction(expression.Name);
+        _builder.Append(new Instruction(InstructionCode.CallBuiltin, (int)code));
     }
 
     public void Visit(InputStatement statement)
@@ -199,6 +210,16 @@ public sealed class MinionVmCodegen : IAstVisitor
             Builtins.Float => BuiltinFunctionCode.InputFloat,
             Builtins.String => BuiltinFunctionCode.InputString,
             _ => throw new NotSupportedException($"input для типа '{id.Variable.TypeName}' не поддержан."),
+        };
+    }
+
+    private static BuiltinFunctionCode MapBuiltinFunction(string name)
+    {
+        return name switch
+        {
+            Builtins.Length => BuiltinFunctionCode.StringLength,
+            Builtins.Substring => BuiltinFunctionCode.StringSubstring,
+            _ => throw new NotSupportedException($"Встроенная функция '{name}' не поддержана."),
         };
     }
 }

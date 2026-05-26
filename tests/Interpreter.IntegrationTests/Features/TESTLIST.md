@@ -95,6 +95,15 @@
 
 - [x] `input` в `var` типа `String` (`BuiltinFunctionsTest`)
 
+### Встроенные функции строк
+
+- [x] `length` для строкового литерала в `print`
+- [x] `substring(s, start, count)` для литерала
+- [x] вложенные `length` / `substring` и конкатенация
+- [x] `length` с аргументом не `String` — ошибка типизации
+- [x] `substring` с неверным типом аргумента — ошибка типизации
+- [x] `length` в инициализаторе `const` — ошибка (не compile-time)
+
 ### Негативы (семантика / типы)
 
 - [x] `String` + `Int`

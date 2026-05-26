@@ -6,7 +6,7 @@ using VType = TLPMinion.Runtime.ValueType;
 
 internal static class TypeHelpers
 {
-    public static VType ParseTypeName(string name)
+    public static VType ToValueType(string name)
     {
         return name switch
         {

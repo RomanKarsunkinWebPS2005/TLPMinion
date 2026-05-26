@@ -6,4 +6,6 @@ public enum BuiltinFunctionCode
     InputInt = 2,
     InputFloat = 3,
     InputString = 4,
+    StringLength = 5,
+    StringSubstring = 6,
 }

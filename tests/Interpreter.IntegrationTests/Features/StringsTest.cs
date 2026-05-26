@@ -141,4 +141,70 @@ public sealed class StringsTest
             _ = interpreter.Execute("""const c: String = "a" * "b";""");
         });
     }
+
+    [Fact]
+    public void Print_length_of_string_literal()
+    {
+        FakeEnvironment environment = new();
+        MinionInterpreter interpreter = new(environment);
+        _ = interpreter.Execute("""print(length("abc"));""");
+        Assert.Equal("3", environment.OutputBuffer);
+        Assert.Equal(0, interpreter.ExitCode);
+    }
+
+    [Fact]
+    public void Print_substring_of_string_literal()
+    {
+        FakeEnvironment environment = new();
+        MinionInterpreter interpreter = new(environment);
+        _ = interpreter.Execute("""print(substring("hello", 1, 3));""");
+        Assert.Equal("ell", environment.OutputBuffer);
+        Assert.Equal(0, interpreter.ExitCode);
+    }
+
+    [Fact]
+    public void Length_nested_in_substring_and_concat()
+    {
+        FakeEnvironment environment = new();
+        MinionInterpreter interpreter = new(environment);
+        _ = interpreter.Execute("""
+            var s: String = "ab";
+            print(substring(s + "cd", 1, length(s)));
+            """);
+        Assert.Equal("bc", environment.OutputBuffer);
+        Assert.Equal(0, interpreter.ExitCode);
+    }
+
+    [Fact]
+    public void Length_with_int_argument_throws_semantic_error()
+    {
+        FakeEnvironment environment = new();
+        MinionInterpreter interpreter = new(environment);
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            _ = interpreter.Execute("""print(length(1));""");
+        });
+    }
+
+    [Fact]
+    public void Substring_with_string_start_throws_semantic_error()
+    {
+        FakeEnvironment environment = new();
+        MinionInterpreter interpreter = new(environment);
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            _ = interpreter.Execute("""print(substring("x", "1", 1));""");
+        });
+    }
+
+    [Fact]
+    public void Length_in_const_initializer_throws_semantic_error()
+    {
+        FakeEnvironment environment = new();
+        MinionInterpreter interpreter = new(environment);
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            _ = interpreter.Execute("""const n: Int = length("a");""");
+        });
+    }
 }

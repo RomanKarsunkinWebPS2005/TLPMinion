@@ -6,6 +6,9 @@
 - [x] Функция input для типа Int (`InputInt`)
 - [x] Функция input для типа Float (`InputFloat`)
 - [x] Функция input для типа String (`InputString`)
+- [x] Функция length (`StringLength`) — длина строки в кодовых единицах UTF-16
+- [x] Функция substring (`StringSubstring`) — подстрока по `start` и `count`
+- [x] substring вне диапазона — ошибка выполнения
 - [x] Некорректный ввод при input (ожидаемая ошибка выполнения)
 - [x] Пустой ввод / конец потока при чтении слова (согласованное исключение)
 

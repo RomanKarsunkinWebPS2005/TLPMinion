@@ -70,12 +70,7 @@ public class Parser
         string typeName = ParseTypeName();
 
         Expression initializer;
-        if (declarationToken == TokenType.Let)
-        {
-            Expect(TokenType.Assign);
-            initializer = ParseExpression();
-        }
-        else if (Match(TokenType.Assign))
+        if (Match(TokenType.Assign))
         {
             initializer = ParseExpression();
         }
@@ -108,16 +103,6 @@ public class Parser
             InputStatement input = ParseInputStatement();
             Expect(TokenType.Semicolon);
             return input;
-        }
-
-        // assignment = identifier , "=" , expression , ";"
-        if (Is(TokenType.Identifier) && _tokens.Peek(1).Type == TokenType.Assign)
-        {
-            string name = ExpectIdentifier();
-            Expect(TokenType.Assign);
-            Expression rhs = ParseExpression();
-            Expect(TokenType.Semicolon);
-            return new AssignmentExpression(new IdentifierExpression(name), rhs);
         }
 
         Expression expression = ParseExpression();
@@ -175,21 +160,26 @@ public class Parser
 
     private Expression ParseAssignmentExpression()
     {
-        Expression left = ParseAdditiveExpression();
+        Expression left = ParseTernaryExpression();
         if (Match(TokenType.Assign))
         {
-            if (left is not IdentifierExpression)
-            {
-                throw new InvalidOperationException(
-                    "Слева от '=' допускается только идентификатор.");
-            }
-
             Expression right = ParseAssignmentExpression();
             return new AssignmentExpression(left, right);
         }
 
         return left;
     }
+
+    // Цепочка заглушек для метода ParseAssignmentExpression(чтобы соответсовало EBNF)
+    private Expression ParseTernaryExpression() => ParseLogicalOrExpression();
+
+    private Expression ParseLogicalOrExpression() => ParseLogicalAndExpression();
+
+    private Expression ParseLogicalAndExpression() => ParseEqualityExpression();
+
+    private Expression ParseEqualityExpression() => ParseRelationalExpression();
+
+    private Expression ParseRelationalExpression() => ParseAdditiveExpression();
 
     private Expression ParseAdditiveExpression()
     {
@@ -267,6 +257,10 @@ public class Parser
                 Expression expression = ParseExpression();
                 Expect(TokenType.CloseParenthesis);
                 return expression;
+            case TokenType.Length:
+                return ParseBuiltinFunctionCall(TokenType.Length, Builtins.Length, 1);
+            case TokenType.Substring:
+                return ParseBuiltinFunctionCall(TokenType.Substring, Builtins.Substring, 3);
             case TokenType.Identifier:
                 return ParseNameExpression();
             default:
@@ -277,10 +271,32 @@ public class Parser
                         TokenType.FloatLiteral,
                         TokenType.StringLiteral,
                         TokenType.Identifier,
+                        TokenType.Length,
+                        TokenType.Substring,
                         TokenType.OpenParenthesis,
                     ]
                 );
         }
+    }
+
+    /// <summary>Разбор <c>builtin-fanction-call</c> </summary>
+    private Expression ParseBuiltinFunctionCall(TokenType keyword, string name, int requiredArguments)
+    {
+        Expect(keyword);
+        Expect(TokenType.OpenParenthesis);
+        List<Expression> arguments = [];
+        if (requiredArguments > 0)
+        {
+            arguments.Add(ParseExpression());
+            for (int i = 1; i < requiredArguments; i++)
+            {
+                Expect(TokenType.Comma);
+                arguments.Add(ParseExpression());
+            }
+        }
+
+        Expect(TokenType.CloseParenthesis);
+        return new FunctionCallExpression(name, arguments);
     }
 
     private Expression ParseNameExpression()

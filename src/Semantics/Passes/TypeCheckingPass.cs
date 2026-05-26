@@ -35,14 +35,14 @@ public sealed class TypeCheckingPass : AbstractPass
     public override void Visit(ConstDeclaration declaration)
     {
         declaration.Initializer.Accept(this);
-        VType expected = TypeHelpers.ParseTypeName(declaration.TypeName);
+        VType expected = TypeHelpers.ToValueType(declaration.TypeName);
         TypeHelpers.AssertAssignable(declaration.Initializer.ResultType, expected, "const");
     }
 
     public override void Visit(VariableDeclaration declaration)
     {
         declaration.Initializer.Accept(this);
-        VType expected = TypeHelpers.ParseTypeName(declaration.TypeName);
+        VType expected = TypeHelpers.ToValueType(declaration.TypeName);
         TypeHelpers.AssertAssignable(declaration.Initializer.ResultType, expected, "переменной");
     }
 
@@ -94,8 +94,28 @@ public sealed class TypeCheckingPass : AbstractPass
             argument.Accept(this);
         }
 
-        throw new InvalidOperationException(
-            $"Вызов функции '{expression.Name}' не поддержан");
+        BuiltinFunction? builtin = FindBuiltin(expression.Name);
+        if (builtin is null)
+        {
+            throw new InvalidOperationException(
+                $"Вызов функции '{expression.Name}' не поддержан");
+        }
+
+        if (expression.Arguments.Count != builtin.Parameters.Count)
+        {
+            throw new InvalidOperationException(
+                $"Функция '{expression.Name}' ожидает {builtin.Parameters.Count} аргумент(ов), передано {expression.Arguments.Count}.");
+        }
+
+        for (int i = 0; i < builtin.Parameters.Count; i++)
+        {
+            AbstractParameterDeclaration parameter = builtin.Parameters[i];
+            VType expected = TypeHelpers.ToValueType(parameter.TypeName);
+            TypeHelpers.AssertAssignable(expression.Arguments[i].ResultType, expected, parameter.Name);
+        }
+
+        expression.Function = builtin;
+        expression.ResultType = TypeHelpers.ToValueType(builtin.ReturnTypeName);
     }
 
     public override void Visit(InputStatement statement)
@@ -113,7 +133,7 @@ public sealed class TypeCheckingPass : AbstractPass
             throw new InvalidOperationException($"Нельзя использовать input для 'let'-переменной '{id.Name}'.");
         }
 
-        VType t = TypeHelpers.ParseTypeName(decl.TypeName);
+        VType t = TypeHelpers.ToValueType(decl.TypeName);
         if (t != VType.Int && t != VType.Float && t != VType.String)
         {
             throw new InvalidOperationException("input допустим только для переменных типа Int, Float или String.");
@@ -136,12 +156,12 @@ public sealed class TypeCheckingPass : AbstractPass
 
     public override void Visit(IdentifierExpression expression)
     {
-        expression.ResultType = TypeHelpers.ParseTypeName(expression.Variable.TypeName);
+        expression.ResultType = TypeHelpers.ToValueType(expression.Variable.TypeName);
     }
 
     public override void Visit(LiteralExpression expression)
     {
-        expression.ResultType = TypeHelpers.ParseTypeName(expression.TypeName);
+        expression.ResultType = TypeHelpers.ToValueType(expression.TypeName);
     }
 
     public override void Visit(UnaryExpression expression)
@@ -154,5 +174,18 @@ public sealed class TypeCheckingPass : AbstractPass
         }
 
         expression.ResultType = t;
+    }
+
+    private static BuiltinFunction? FindBuiltin(string name)
+    {
+        foreach (BuiltinFunction builtin in Builtins.Functions)
+        {
+            if (builtin.Name == name)
+            {
+                return builtin;
+            }
+        }
+
+        return null;
     }
 }

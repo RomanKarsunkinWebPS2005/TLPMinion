@@ -131,7 +131,7 @@ letter = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" |
          "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" ;
 digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
 
-keyword = "func" | "const" | "let" | "var" | "if" | "else" | "for" | "while" | "print" | "input" | "return" | "true" | "false" | "Int" | "Bool" | "Float" | "String" | "Void" | "min" | "max" | "abs" | "lenght" | "substring";
+keyword = "func" | "const" | "let" | "var" | "if" | "else" | "for" | "while" | "print" | "input" | "return" | "true" | "false" | "Int" | "Bool" | "Float" | "String" | "Void" | "min" | "max" | "abs" | "length" | "substring";
 
 literal = number-literal | string-literal | boolean-literal ;
 
