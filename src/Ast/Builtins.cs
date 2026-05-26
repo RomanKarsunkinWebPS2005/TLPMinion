@@ -32,12 +32,4 @@ public static class Builtins
             ],
             String),
     ];
-
-    public static readonly IReadOnlyList<BuiltinType> Types =
-    [
-        new(Int),
-        new(Float),
-        new(String),
-        new(Void),
-    ];
 }

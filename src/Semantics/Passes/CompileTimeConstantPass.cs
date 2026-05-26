@@ -16,7 +16,7 @@ public sealed class CompileTimeConstantPass : AbstractPass
     {
         Value computed = Evaluate(declaration.Initializer);
         VType got = ValueToSemanticType(computed);
-        TypeHelpers.AssertAssignable(got, TypeHelpers.ParseTypeName(declaration.TypeName), "const");
+        TypeHelpers.AssertAssignable(got, TypeHelpers.ToValueType(declaration.TypeName), "const");
         declaration.CompileTimeValue = computed;
     }
 
