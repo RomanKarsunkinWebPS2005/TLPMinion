@@ -83,6 +83,8 @@
 | abs | Float abs(Float x) | Модуль числа |
 | min | Float min(Float a, Float b) | Минимум из аргументов |
 | max | Float max(Float a, Float b) | Максимум из аргументов |
+| length | Int length(s: String) | Длина строки в кодовых единицах UTF-16 |
+| substring | String substring(s: String, start: Int, count: Int) | Подстрока |
 
 
 

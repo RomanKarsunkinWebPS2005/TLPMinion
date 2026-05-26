@@ -12,6 +12,8 @@ public class Lexer
         { "var", TokenType.Var },
         { "print", TokenType.Print },
         { "input", TokenType.Input },
+        { "length", TokenType.Length },
+        { "substring", TokenType.Substring },
         { "Int", TokenType.TypeInt },
         { "Float", TokenType.TypeFloat },
         { "String", TokenType.TypeString },

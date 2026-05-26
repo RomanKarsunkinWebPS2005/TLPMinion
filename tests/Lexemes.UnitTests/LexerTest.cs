@@ -44,13 +44,15 @@ public class LexerTest
                 ]
             },
             {
-                "const let var print input Int Float String Void",
+                "const let var print input length substring Int Float String Void",
                 [
                     new Token(TokenType.Const),
                     new Token(TokenType.Let),
                     new Token(TokenType.Var),
                     new Token(TokenType.Print),
                     new Token(TokenType.Input),
+                    new Token(TokenType.Length),
+                    new Token(TokenType.Substring),
                     new Token(TokenType.TypeInt),
                     new Token(TokenType.TypeFloat),
                     new Token(TokenType.TypeString),
@@ -58,11 +60,13 @@ public class LexerTest
                 ]
             },
             {
-                "printf inputValue Float32",
+                "printf inputValue Float32 lengthOf substringx",
                 [
                     new Token(TokenType.Identifier, "printf"),
                     new Token(TokenType.Identifier, "inputValue"),
                     new Token(TokenType.Identifier, "Float32"),
+                    new Token(TokenType.Identifier, "lengthOf"),
+                    new Token(TokenType.Identifier, "substringx"),
                 ]
             },
         };

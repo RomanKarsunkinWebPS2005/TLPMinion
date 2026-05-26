@@ -3,9 +3,9 @@
 ## Идентификаторы и ключевые слова
 - [x] Разбор идентификаторов: `alice`, `Bob`, `C00L`, `D_2`, `_tmp`, `x`.
 - [x] Регистр имеет значение: `count`, `Count`, `COUNT` -> разные `Identifier`.
-- [x] Разбор ключевых слов: `const`, `let`, `var`, `print`, `input`.
-- [x] Разбор типовых ключевых слов: `Int`, `Float`.
-- [x] Похожие на ключевые слова идентификаторы не путаются с keyword: `printf`, `inputValue`, `Float32`.
+- [x] Разбор ключевых слов: `const`, `let`, `var`, `print`, `input`, `length`, `substring`.
+- [x] Разбор типовых ключевых слов: `Int`, `Float`, `String`, `Void`.
+- [x] Похожие на ключевые слова идентификаторы не путаются с keyword: `printf`, `inputValue`, `Float32`, `lengthOf`, `substringx`.
 
 ## Строковые литералы
 - [x] Пустая строка `""`.
