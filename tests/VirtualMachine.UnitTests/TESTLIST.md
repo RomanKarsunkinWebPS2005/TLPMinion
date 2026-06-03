@@ -51,5 +51,6 @@
 Сравнения, логика и переходы
 
 - [x] `Equal`, `NotEqual`, `<`, `<=` для `Int`, `Float`, `String`, `Bool`; `>` / `>=` через свап операндов + `Less` / `LessOrEqual`
+- [x] строки: регистр, префикс, кириллица, emoji; `>` через swap
 - [x] `Not`, `And`, `Or` для `Bool`
 - [x] `Jump`, `JumpIfTrue`, `JumpIfFalse`

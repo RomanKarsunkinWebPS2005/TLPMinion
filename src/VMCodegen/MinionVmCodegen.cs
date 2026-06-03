@@ -66,14 +66,43 @@ public sealed class MinionVmCodegen : IAstVisitor
 
     public void Visit(BinaryExpression expression)
     {
-        expression.Left.Accept(this);
-        expression.Right.Accept(this);
-        _builder.Append(new Instruction(MapBinary(expression.Operator)));
+        switch (expression.Operator)
+        {
+            case BinaryOperator.Greater:
+                expression.Right.Accept(this);
+                expression.Left.Accept(this);
+                _builder.Append(new Instruction(InstructionCode.Less));
+                return;
+            case BinaryOperator.GreaterOrEqual:
+                expression.Right.Accept(this);
+                expression.Left.Accept(this);
+                _builder.Append(new Instruction(InstructionCode.LessOrEqual));
+                return;
+            case BinaryOperator.And:
+                EmitShortCircuitAnd(expression);
+                return;
+            case BinaryOperator.Or:
+                EmitShortCircuitOr(expression);
+                return;
+            default:
+                expression.Left.Accept(this);
+                expression.Right.Accept(this);
+                _builder.Append(new Instruction(MapBinary(expression.Operator)));
+                break;
+        }
     }
 
     public void Visit(ConditionalExpression expression)
     {
-        throw new NotSupportedException("Тернарный оператор ? : пока не поддержан");
+        expression.Condition.Accept(this);
+        BasicBlock falseBlock = _builder.CreateBasicBlock();
+        BasicBlock endBlock = _builder.CreateBasicBlock();
+        _builder.AppendJump(InstructionCode.JumpIfFalse, falseBlock);
+        expression.WhenTrue.Accept(this);
+        _builder.AppendJump(InstructionCode.Jump, endBlock);
+        _builder.InsertPoint = falseBlock;
+        expression.WhenFalse.Accept(this);
+        _builder.InsertPoint = endBlock;
     }
 
     public void Visit(FunctionCallExpression expression)
@@ -133,6 +162,13 @@ public sealed class MinionVmCodegen : IAstVisitor
             return;
         }
 
+        if (expression.TypeName == Builtins.Bool)
+        {
+            bool value = expression.Lexeme == "true";
+            _builder.Append(new Instruction(InstructionCode.Push, new Value(value)));
+            return;
+        }
+
         throw new NotSupportedException($"Литерал типа '{expression.TypeName}'.");
     }
 
@@ -175,9 +211,38 @@ public sealed class MinionVmCodegen : IAstVisitor
             case UnaryOperator.Minus:
                 _builder.Append(new Instruction(InstructionCode.Negate));
                 break;
+            case UnaryOperator.Not:
+                _builder.Append(new Instruction(InstructionCode.Not));
+                break;
             default:
                 throw new NotSupportedException($"Унарный оператор {expression.Operator}.");
         }
+    }
+
+    private void EmitShortCircuitAnd(BinaryExpression expression)
+    {
+        expression.Left.Accept(this);
+        BasicBlock falseBlock = _builder.CreateBasicBlock();
+        BasicBlock endBlock = _builder.CreateBasicBlock();
+        _builder.AppendJump(InstructionCode.JumpIfFalse, falseBlock);
+        expression.Right.Accept(this);
+        _builder.AppendJump(InstructionCode.Jump, endBlock);
+        _builder.InsertPoint = falseBlock;
+        _builder.Append(new Instruction(InstructionCode.Push, new Value(false)));
+        _builder.InsertPoint = endBlock;
+    }
+
+    private void EmitShortCircuitOr(BinaryExpression expression)
+    {
+        expression.Left.Accept(this);
+        BasicBlock trueBlock = _builder.CreateBasicBlock();
+        BasicBlock endBlock = _builder.CreateBasicBlock();
+        _builder.AppendJump(InstructionCode.JumpIfTrue, trueBlock);
+        expression.Right.Accept(this);
+        _builder.AppendJump(InstructionCode.Jump, endBlock);
+        _builder.InsertPoint = trueBlock;
+        _builder.Append(new Instruction(InstructionCode.Push, new Value(true)));
+        _builder.InsertPoint = endBlock;
     }
 
     private void PushScope()
@@ -203,6 +268,12 @@ public sealed class MinionVmCodegen : IAstVisitor
             BinaryOperator.Divide => InstructionCode.Divide,
             BinaryOperator.Modulo => InstructionCode.Modulo,
             BinaryOperator.Power => InstructionCode.Power,
+            BinaryOperator.Equal => InstructionCode.Equal,
+            BinaryOperator.NotEqual => InstructionCode.NotEqual,
+            BinaryOperator.Less => InstructionCode.Less,
+            BinaryOperator.LessOrEqual => InstructionCode.LessOrEqual,
+            BinaryOperator.And or BinaryOperator.Or =>
+                throw new NotSupportedException($"Оператор {op} требует кодогенерации с переходами."),
             _ => throw new NotSupportedException($"Оператор {op}."),
         };
     }

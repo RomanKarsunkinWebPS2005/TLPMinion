@@ -38,6 +38,7 @@ public sealed class BooleanEvaluationTest
             { InstructionCode.Equal, new Value(true), new Value(false), false },
             { InstructionCode.Equal, new Value("a"), new Value("a"), true },
             { InstructionCode.Less, new Value("a"), new Value("b"), true },
+            { InstructionCode.LessOrEqual, new Value("a"), new Value("a"), true },
             { InstructionCode.Equal, new Value(1.0), new Value(1.0), true },
             { InstructionCode.Less, new Value(1.0), new Value(2.0), true },
         };
@@ -90,6 +91,53 @@ public sealed class BooleanEvaluationTest
 
         MinionVm vm = new(new FakeEnvironment(), program);
         Assert.Equal(new Value(true), vm.RunProgram());
+    }
+
+    [Fact]
+    public void String_greater_via_swapped_operands_uses_less()
+    {
+        List<Instruction> program =
+        [
+            new Instruction(InstructionCode.Push, new Value("a")),
+            new Instruction(InstructionCode.Push, new Value("ab")),
+            new Instruction(InstructionCode.Less),
+            new Instruction(InstructionCode.StoreResult),
+            new Instruction(InstructionCode.Push, 0),
+            new Instruction(InstructionCode.Halt),
+        ];
+
+        MinionVm vm = new(new FakeEnvironment(), program);
+        Assert.Equal(new Value(true), vm.RunProgram());
+    }
+
+    [CulturedTheory(["ru-RU", "en-US"])]
+    [MemberData(nameof(GetStringOrderingData))]
+    public void Can_compare_strings_ordinally(InstructionCode code, string left, string right, bool expected)
+    {
+        List<Instruction> program =
+        [
+            new Instruction(InstructionCode.Push, new Value(left)),
+            new Instruction(InstructionCode.Push, new Value(right)),
+            new Instruction(code),
+            new Instruction(InstructionCode.StoreResult),
+            new Instruction(InstructionCode.Push, 0),
+            new Instruction(InstructionCode.Halt),
+        ];
+
+        MinionVm vm = new(new FakeEnvironment(), program);
+        Assert.Equal(new Value(expected), vm.RunProgram());
+    }
+
+    public static TheoryData<InstructionCode, string, string, bool> GetStringOrderingData()
+    {
+        return new TheoryData<InstructionCode, string, string, bool>
+        {
+            { InstructionCode.Less, "A", "a", true },
+            { InstructionCode.Less, "ab", "b", true },
+            { InstructionCode.LessOrEqual, "a", "a", true },
+            { InstructionCode.Less, "a", "🙂", true },
+            { InstructionCode.Less, "а", "я", true },
+        };
     }
 
     [Fact]
