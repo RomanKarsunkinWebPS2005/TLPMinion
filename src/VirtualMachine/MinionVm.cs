@@ -81,6 +81,50 @@ public sealed class MinionVm
                 case InstructionCode.Negate:
                     _stack.Push(Negate(_stack.Pop()));
                     break;
+                case InstructionCode.Equal:
+                    _stack.Push(CompareEqual(_stack.Pop(), _stack.Pop()));
+                    break;
+                case InstructionCode.NotEqual:
+                    _stack.Push(CompareNotEqual(_stack.Pop(), _stack.Pop()));
+                    break;
+                case InstructionCode.Less:
+                    _stack.Push(CompareLess(_stack.Pop(), _stack.Pop()));
+                    break;
+                case InstructionCode.LessOrEqual:
+                    _stack.Push(CompareLessOrEqual(_stack.Pop(), _stack.Pop()));
+                    break;
+                case InstructionCode.Not:
+                    _stack.Push(LogicalNot(_stack.Pop()));
+                    break;
+                case InstructionCode.And:
+                    _stack.Push(LogicalAnd(_stack.Pop(), _stack.Pop()));
+                    break;
+                case InstructionCode.Or:
+                    _stack.Push(LogicalOr(_stack.Pop(), _stack.Pop()));
+                    break;
+                case InstructionCode.Jump:
+                    _instructionPointer = instruction.Operand.AsInt();
+                    break;
+                case InstructionCode.JumpIfTrue:
+                    {
+                        bool condition = _stack.Pop().AsBool();
+                        if (condition)
+                        {
+                            _instructionPointer = instruction.Operand.AsInt();
+                        }
+                    }
+
+                    break;
+                case InstructionCode.JumpIfFalse:
+                    {
+                        bool condition = _stack.Pop().AsBool();
+                        if (!condition)
+                        {
+                            _instructionPointer = instruction.Operand.AsInt();
+                        }
+                    }
+
+                    break;
                 case InstructionCode.CallBuiltin:
                     _builtins.Invoke((BuiltinFunctionCode)instruction.Operand.AsInt(), _stack);
                     break;
@@ -173,6 +217,76 @@ public sealed class MinionVm
     {
         double value = Math.Pow(left.AsDouble(), right.AsDouble());
         return new Value(value);
+    }
+
+    private static Value CompareEqual(Value right, Value left)
+    {
+        EnsureSameComparisonOperands(left, right);
+        return new Value(left.Equals(right));
+    }
+
+    private static Value CompareNotEqual(Value right, Value left)
+    {
+        EnsureSameComparisonOperands(left, right);
+        return new Value(!left.Equals(right));
+    }
+
+    private static Value CompareLess(Value right, Value left)
+    {
+        return new Value(CompareOrdering(left, right) < 0);
+    }
+
+    private static Value CompareLessOrEqual(Value right, Value left)
+    {
+        return new Value(CompareOrdering(left, right) <= 0);
+    }
+
+    private static Value LogicalNot(Value value)
+    {
+        return new Value(!value.AsBool());
+    }
+
+    private static Value LogicalAnd(Value right, Value left)
+    {
+        return new Value(left.AsBool() && right.AsBool());
+    }
+
+    private static Value LogicalOr(Value right, Value left)
+    {
+        return new Value(left.AsBool() || right.AsBool());
+    }
+
+    private static void EnsureSameComparisonOperands(Value left, Value right)
+    {
+        if ((left.IsInt() && right.IsInt())
+            || (left.IsDouble() && right.IsDouble())
+            || (left.IsString() && right.IsString())
+            || (left.IsBool() && right.IsBool()))
+        {
+            return;
+        }
+
+        throw new InvalidOperationException("Операнды сравнения должны быть одного типа.");
+    }
+
+    private static int CompareOrdering(Value left, Value right)
+    {
+        if (left.IsInt() && right.IsInt())
+        {
+            return left.AsInt().CompareTo(right.AsInt());
+        }
+
+        if (left.IsDouble() && right.IsDouble())
+        {
+            return left.AsDouble().CompareTo(right.AsDouble());
+        }
+
+        if (left.IsString() && right.IsString())
+        {
+            return string.CompareOrdinal(left.AsString(), right.AsString());
+        }
+
+        throw new InvalidOperationException("Операнды упорядочивания должны быть одного типа (Int, Float или String).");
     }
 
     private static void ValidateProgram(IReadOnlyList<Instruction> instructions)

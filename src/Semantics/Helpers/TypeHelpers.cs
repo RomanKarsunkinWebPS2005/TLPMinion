@@ -13,6 +13,7 @@ internal static class TypeHelpers
             Builtins.Int => VType.Int,
             Builtins.Float => VType.Float,
             Builtins.String => VType.String,
+            Builtins.Bool => VType.Bool,
             Builtins.Void => VType.Void,
             _ => throw new InvalidOperationException($"Неизвестное имя типа '{name}'."),
         };
@@ -62,5 +63,47 @@ internal static class TypeHelpers
         }
 
         return VType.Float;
+    }
+
+    public static VType SameEqualityOperandType(VType l, VType r)
+    {
+        if (l == r && l is VType.Int or VType.Float or VType.String or VType.Bool)
+        {
+            return VType.Bool;
+        }
+
+        throw new InvalidOperationException(
+            "Операторы == и != требуют операнды одного типа (Int, Float, String или Bool).");
+    }
+
+    public static VType SameOrderingOperandType(VType l, VType r)
+    {
+        if (l == VType.Int && r == VType.Int)
+        {
+            return VType.Bool;
+        }
+
+        if (l == VType.Float && r == VType.Float)
+        {
+            return VType.Bool;
+        }
+
+        if (l == VType.String && r == VType.String)
+        {
+            return VType.Bool;
+        }
+
+        throw new InvalidOperationException(
+            "Операторы <, <=, >, >= требуют операнды одного типа (оба Int, оба Float или обе String).");
+    }
+
+    public static VType LogicalOperandType(VType l, VType r)
+    {
+        if (l == VType.Bool && r == VType.Bool)
+        {
+            return VType.Bool;
+        }
+
+        throw new InvalidOperationException("Операторы && и || требуют операнды типа Bool.");
     }
 }

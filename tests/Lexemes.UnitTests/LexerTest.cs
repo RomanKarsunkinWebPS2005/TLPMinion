@@ -8,6 +8,7 @@ public class LexerTest
     [MemberData(nameof(GetTokenizeIdentifiersAndKeywordsData))]
     [MemberData(nameof(GetTokenizeLiteralsData))]
     [MemberData(nameof(GetTokenizeOperatorsPunctuationData))]
+    [MemberData(nameof(GetTokenizeBoolAndLogicOperatorsData))]
     [MemberData(nameof(GetSkipWhitespacesAndCommentsData))]
     [MemberData(nameof(GetLexErrorsData))]
     public void Can_tokenize_lexemes(string code, List<Token> expected)
@@ -44,7 +45,7 @@ public class LexerTest
                 ]
             },
             {
-                "const let var print input length substring Int Float String Void",
+                "const let var print input length substring Int Float String Void Bool true false if else",
                 [
                     new Token(TokenType.Const),
                     new Token(TokenType.Let),
@@ -57,6 +58,20 @@ public class LexerTest
                     new Token(TokenType.TypeFloat),
                     new Token(TokenType.TypeString),
                     new Token(TokenType.TypeVoid),
+                    new Token(TokenType.TypeBool),
+                    new Token(TokenType.True),
+                    new Token(TokenType.False),
+                    new Token(TokenType.If),
+                    new Token(TokenType.Else),
+                ]
+            },
+            {
+                "trueish falsey iffy elsewher",
+                [
+                    new Token(TokenType.Identifier, "trueish"),
+                    new Token(TokenType.Identifier, "falsey"),
+                    new Token(TokenType.Identifier, "iffy"),
+                    new Token(TokenType.Identifier, "elsewher"),
                 ]
             },
             {
@@ -67,6 +82,72 @@ public class LexerTest
                     new Token(TokenType.Identifier, "Float32"),
                     new Token(TokenType.Identifier, "lengthOf"),
                     new Token(TokenType.Identifier, "substringx"),
+                ]
+            },
+        };
+    }
+
+    public static TheoryData<string, List<Token>> GetTokenizeBoolAndLogicOperatorsData()
+    {
+        return new TheoryData<string, List<Token>>
+        {
+            {
+                "1==2 a!=b x<y a<=b a>b a>=b",
+                [
+                    new Token(TokenType.IntLiteral, 1),
+                    new Token(TokenType.Equal),
+                    new Token(TokenType.IntLiteral, 2),
+                    new Token(TokenType.Identifier, "a"),
+                    new Token(TokenType.NotEqual),
+                    new Token(TokenType.Identifier, "b"),
+                    new Token(TokenType.Identifier, "x"),
+                    new Token(TokenType.Less),
+                    new Token(TokenType.Identifier, "y"),
+                    new Token(TokenType.Identifier, "a"),
+                    new Token(TokenType.LessOrEqual),
+                    new Token(TokenType.Identifier, "b"),
+                    new Token(TokenType.Identifier, "a"),
+                    new Token(TokenType.Greater),
+                    new Token(TokenType.Identifier, "b"),
+                    new Token(TokenType.Identifier, "a"),
+                    new Token(TokenType.GreaterOrEqual),
+                    new Token(TokenType.Identifier, "b"),
+                ]
+            },
+            {
+                "a&&b c||d !x",
+                [
+                    new Token(TokenType.Identifier, "a"),
+                    new Token(TokenType.And),
+                    new Token(TokenType.Identifier, "b"),
+                    new Token(TokenType.Identifier, "c"),
+                    new Token(TokenType.Or),
+                    new Token(TokenType.Identifier, "d"),
+                    new Token(TokenType.Not),
+                    new Token(TokenType.Identifier, "x"),
+                ]
+            },
+            {
+                "x=1 a?b:c",
+                [
+                    new Token(TokenType.Identifier, "x"),
+                    new Token(TokenType.Assign),
+                    new Token(TokenType.IntLiteral, 1),
+                    new Token(TokenType.Identifier, "a"),
+                    new Token(TokenType.Question),
+                    new Token(TokenType.Identifier, "b"),
+                    new Token(TokenType.Colon),
+                    new Token(TokenType.Identifier, "c"),
+                ]
+            },
+            {
+                "2**3==0",
+                [
+                    new Token(TokenType.IntLiteral, 2),
+                    new Token(TokenType.Power),
+                    new Token(TokenType.IntLiteral, 3),
+                    new Token(TokenType.Equal),
+                    new Token(TokenType.IntLiteral, 0),
                 ]
             },
         };
@@ -282,6 +363,22 @@ public class LexerTest
                 [
                     new Token(TokenType.Identifier, "x"),
                     new Token(TokenType.Error, "Незакрытый многострочный комментарий."),
+                ]
+            },
+            {
+                "a & b",
+                [
+                    new Token(TokenType.Identifier, "a"),
+                    new Token(TokenType.Error, "Неизвестный токен: &"),
+                    new Token(TokenType.Identifier, "b"),
+                ]
+            },
+            {
+                "a | b",
+                [
+                    new Token(TokenType.Identifier, "a"),
+                    new Token(TokenType.Error, "Неизвестный токен: |"),
+                    new Token(TokenType.Identifier, "b"),
                 ]
             },
         };

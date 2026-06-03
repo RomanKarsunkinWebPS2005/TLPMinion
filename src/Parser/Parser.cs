@@ -86,6 +86,11 @@ public class Parser
 
     private Expression ParseStatementExpression()
     {
+        if (Is(TokenType.If))
+        {
+            return ParseIfStatement();
+        }
+
         if (Match(TokenType.OpenBrace))
         {
             return ParseScopeBody();
@@ -126,6 +131,29 @@ public class Parser
         string name = ExpectIdentifier();
         Expect(TokenType.CloseParenthesis);
         return new InputStatement(new IdentifierExpression(name));
+    }
+
+    private IfStatement ParseIfStatement()
+    {
+        Expect(TokenType.If);
+        Expect(TokenType.OpenParenthesis);
+        Expression condition = ParseExpression();
+        Expect(TokenType.CloseParenthesis);
+        ScopeExpression thenBranch = ParseBlock();
+
+        Expression? elseBranch = null;
+        if (Match(TokenType.Else))
+        {
+            elseBranch = Is(TokenType.If) ? ParseIfStatement() : ParseBlock();
+        }
+
+        return new IfStatement(condition, thenBranch, elseBranch);
+    }
+
+    private ScopeExpression ParseBlock()
+    {
+        Expect(TokenType.OpenBrace);
+        return ParseScopeBody();
     }
 
     private ScopeExpression ParseScopeBody()
@@ -170,16 +198,72 @@ public class Parser
         return left;
     }
 
-    // Цепочка заглушек для метода ParseAssignmentExpression(чтобы соответсовало EBNF)
-    private Expression ParseTernaryExpression() => ParseLogicalOrExpression();
+    private Expression ParseTernaryExpression()
+    {
+        Expression condition = ParseLogicalOrExpression();
+        if (!Match(TokenType.Question))
+        {
+            return condition;
+        }
 
-    private Expression ParseLogicalOrExpression() => ParseLogicalAndExpression();
+        // EBNF: ternary-expression = logical-or-expression , [ "?" , expression , ":" , expression ]
+        Expression whenTrue = ParseExpression();
+        Expect(TokenType.Colon);
+        Expression whenFalse = ParseExpression();
+        return new ConditionalExpression(condition, whenTrue, whenFalse);
+    }
 
-    private Expression ParseLogicalAndExpression() => ParseEqualityExpression();
+    private Expression ParseLogicalOrExpression()
+    {
+        Expression expression = ParseLogicalAndExpression();
+        while (Match(TokenType.Or))
+        {
+            Expression right = ParseLogicalAndExpression();
+            expression = new BinaryExpression(expression, BinaryOperator.Or, right);
+        }
 
-    private Expression ParseEqualityExpression() => ParseRelationalExpression();
+        return expression;
+    }
 
-    private Expression ParseRelationalExpression() => ParseAdditiveExpression();
+    private Expression ParseLogicalAndExpression()
+    {
+        Expression expression = ParseEqualityExpression();
+        while (Match(TokenType.And))
+        {
+            Expression right = ParseEqualityExpression();
+            expression = new BinaryExpression(expression, BinaryOperator.And, right);
+        }
+
+        return expression;
+    }
+
+    private Expression ParseEqualityExpression()
+    {
+        Expression expression = ParseRelationalExpression();
+        while (Is(TokenType.Equal) || Is(TokenType.NotEqual))
+        {
+            TokenType op = _tokens.Peek().Type;
+            _tokens.Advance();
+            Expression right = ParseRelationalExpression();
+            expression = new BinaryExpression(expression, MapEqualityOperator(op), right);
+        }
+
+        return expression;
+    }
+
+    private Expression ParseRelationalExpression()
+    {
+        Expression expression = ParseAdditiveExpression();
+        while (IsRelationalOperator())
+        {
+            TokenType op = _tokens.Peek().Type;
+            _tokens.Advance();
+            Expression right = ParseAdditiveExpression();
+            expression = new BinaryExpression(expression, MapRelationalOperator(op), right);
+        }
+
+        return expression;
+    }
 
     private Expression ParseAdditiveExpression()
     {
@@ -233,6 +317,11 @@ public class Parser
             return new UnaryExpression(UnaryOperator.Minus, ParseUnaryExpression());
         }
 
+        if (Match(TokenType.Not))
+        {
+            return new UnaryExpression(UnaryOperator.Not, ParseUnaryExpression());
+        }
+
         return ParsePrimaryExpression();
     }
 
@@ -252,6 +341,12 @@ public class Parser
             case TokenType.StringLiteral:
                 _tokens.Advance();
                 return new LiteralExpression(Builtins.String, token.Value?.ToString() ?? string.Empty);
+            case TokenType.True:
+                _tokens.Advance();
+                return new LiteralExpression(Builtins.Bool, "true");
+            case TokenType.False:
+                _tokens.Advance();
+                return new LiteralExpression(Builtins.Bool, "false");
             case TokenType.OpenParenthesis:
                 _tokens.Advance();
                 Expression expression = ParseExpression();
@@ -270,6 +365,8 @@ public class Parser
                         TokenType.IntLiteral,
                         TokenType.FloatLiteral,
                         TokenType.StringLiteral,
+                        TokenType.True,
+                        TokenType.False,
                         TokenType.Identifier,
                         TokenType.Length,
                         TokenType.Substring,
@@ -347,7 +444,10 @@ public class Parser
             TokenType.TypeFloat => AdvanceAndReturn(Builtins.Float),
             TokenType.TypeString => AdvanceAndReturn(Builtins.String),
             TokenType.TypeVoid => AdvanceAndReturn(Builtins.Void),
-            _ => throw new UnexpectedLexemeException(token, [TokenType.TypeInt, TokenType.TypeFloat, TokenType.TypeString, TokenType.TypeVoid]),
+            TokenType.TypeBool => AdvanceAndReturn(Builtins.Bool),
+            _ => throw new UnexpectedLexemeException(
+                token,
+                [TokenType.TypeInt, TokenType.TypeFloat, TokenType.TypeString, TokenType.TypeVoid, TokenType.TypeBool]),
         };
     }
 
@@ -358,6 +458,7 @@ public class Parser
             var t when t == Builtins.Int => new LiteralExpression(Builtins.Int, "0"),
             var t when t == Builtins.Float => new LiteralExpression(Builtins.Float, "0.0"),
             var t when t == Builtins.String => new LiteralExpression(Builtins.String, string.Empty),
+            var t when t == Builtins.Bool => new LiteralExpression(Builtins.Bool, "false"),
             _ => throw new InvalidOperationException($"Неподдерживаемый тип объявления '{typeName}'."),
         };
     }
@@ -440,6 +541,34 @@ public class Parser
             TokenType.Divide => BinaryOperator.Divide,
             TokenType.Percent => BinaryOperator.Modulo,
             _ => throw new InvalidOperationException($"Неподдерживаемый оператор умножения/деления {type}."),
+        };
+    }
+
+    private bool IsRelationalOperator()
+    {
+        return _tokens.Peek().Type is TokenType.Less or TokenType.LessOrEqual or TokenType.Greater
+            or TokenType.GreaterOrEqual;
+    }
+
+    private static BinaryOperator MapEqualityOperator(TokenType type)
+    {
+        return type switch
+        {
+            TokenType.Equal => BinaryOperator.Equal,
+            TokenType.NotEqual => BinaryOperator.NotEqual,
+            _ => throw new InvalidOperationException($"Неподдерживаемый оператор равенства {type}."),
+        };
+    }
+
+    private static BinaryOperator MapRelationalOperator(TokenType type)
+    {
+        return type switch
+        {
+            TokenType.Less => BinaryOperator.Less,
+            TokenType.LessOrEqual => BinaryOperator.LessOrEqual,
+            TokenType.Greater => BinaryOperator.Greater,
+            TokenType.GreaterOrEqual => BinaryOperator.GreaterOrEqual,
+            _ => throw new InvalidOperationException($"Неподдерживаемый оператор сравнения {type}."),
         };
     }
 }

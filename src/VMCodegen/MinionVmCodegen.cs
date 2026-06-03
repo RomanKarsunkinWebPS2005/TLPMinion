@@ -25,6 +25,8 @@ public sealed class MinionVmCodegen : IAstVisitor
             _builder.Append(new Instruction(InstructionCode.StoreResult));
         }
 
+        BasicBlock exitBlock = _builder.CreateBasicBlock();
+        _builder.InsertPoint = exitBlock;
         _builder.Append(new Instruction(InstructionCode.Push, 0));
         _builder.Append(new Instruction(InstructionCode.Halt));
         return _builder.Finish();
@@ -66,9 +68,44 @@ public sealed class MinionVmCodegen : IAstVisitor
 
     public void Visit(BinaryExpression expression)
     {
-        expression.Left.Accept(this);
-        expression.Right.Accept(this);
-        _builder.Append(new Instruction(MapBinary(expression.Operator)));
+        switch (expression.Operator)
+        {
+            case BinaryOperator.Greater:
+                expression.Right.Accept(this);
+                expression.Left.Accept(this);
+                _builder.Append(new Instruction(InstructionCode.Less));
+                return;
+            case BinaryOperator.GreaterOrEqual:
+                expression.Right.Accept(this);
+                expression.Left.Accept(this);
+                _builder.Append(new Instruction(InstructionCode.LessOrEqual));
+                return;
+            case BinaryOperator.And:
+                EmitShortCircuitAnd(expression);
+                return;
+            case BinaryOperator.Or:
+                EmitShortCircuitOr(expression);
+                return;
+            default:
+                expression.Left.Accept(this);
+                expression.Right.Accept(this);
+                _builder.Append(new Instruction(MapBinary(expression.Operator)));
+                break;
+        }
+    }
+
+    public void Visit(ConditionalExpression expression)
+    {
+        expression.Condition.Accept(this);
+        BasicBlock falseBlock = _builder.CreateBasicBlock();
+        _builder.AppendJump(InstructionCode.JumpIfFalse, falseBlock);
+        expression.WhenTrue.Accept(this);
+        ForwardJumpBackpatch skipFalse = _builder.AppendForwardJump(InstructionCode.Jump);
+        _builder.InsertPoint = falseBlock;
+        expression.WhenFalse.Accept(this);
+        BasicBlock endBlock = _builder.CreateBasicBlock();
+        _builder.BackpatchForwardJump(skipFalse, endBlock);
+        _builder.InsertPoint = endBlock;
     }
 
     public void Visit(FunctionCallExpression expression)
@@ -85,6 +122,20 @@ public sealed class MinionVmCodegen : IAstVisitor
 
         BuiltinFunctionCode code = MapBuiltinFunction(expression.Name);
         _builder.Append(new Instruction(InstructionCode.CallBuiltin, (int)code));
+    }
+
+    public void Visit(IfStatement statement)
+    {
+        statement.Condition.Accept(this);
+        BasicBlock elseBlock = _builder.CreateBasicBlock();
+        _builder.AppendJump(InstructionCode.JumpIfFalse, elseBlock);
+        statement.ThenBranch.Accept(this);
+        ForwardJumpBackpatch skipElse = _builder.AppendForwardJump(InstructionCode.Jump);
+        _builder.InsertPoint = elseBlock;
+        statement.ElseBranch?.Accept(this);
+        BasicBlock mergeBlock = _builder.CreateBasicBlock();
+        _builder.BackpatchForwardJump(skipElse, mergeBlock);
+        _builder.InsertPoint = mergeBlock;
     }
 
     public void Visit(InputStatement statement)
@@ -125,6 +176,13 @@ public sealed class MinionVmCodegen : IAstVisitor
         if (expression.TypeName == Builtins.String)
         {
             _builder.Append(new Instruction(InstructionCode.Push, new Value(expression.Lexeme)));
+            return;
+        }
+
+        if (expression.TypeName == Builtins.Bool)
+        {
+            bool value = expression.Lexeme == "true";
+            _builder.Append(new Instruction(InstructionCode.Push, new Value(value)));
             return;
         }
 
@@ -170,9 +228,40 @@ public sealed class MinionVmCodegen : IAstVisitor
             case UnaryOperator.Minus:
                 _builder.Append(new Instruction(InstructionCode.Negate));
                 break;
+            case UnaryOperator.Not:
+                _builder.Append(new Instruction(InstructionCode.Not));
+                break;
             default:
                 throw new NotSupportedException($"Унарный оператор {expression.Operator}.");
         }
+    }
+
+    private void EmitShortCircuitAnd(BinaryExpression expression)
+    {
+        expression.Left.Accept(this);
+        BasicBlock falseBlock = _builder.CreateBasicBlock();
+        _builder.AppendJump(InstructionCode.JumpIfFalse, falseBlock);
+        expression.Right.Accept(this);
+        ForwardJumpBackpatch skipFalse = _builder.AppendForwardJump(InstructionCode.Jump);
+        _builder.InsertPoint = falseBlock;
+        _builder.Append(new Instruction(InstructionCode.Push, new Value(false)));
+        BasicBlock endBlock = _builder.CreateBasicBlock();
+        _builder.BackpatchForwardJump(skipFalse, endBlock);
+        _builder.InsertPoint = endBlock;
+    }
+
+    private void EmitShortCircuitOr(BinaryExpression expression)
+    {
+        expression.Left.Accept(this);
+        BasicBlock trueBlock = _builder.CreateBasicBlock();
+        _builder.AppendJump(InstructionCode.JumpIfTrue, trueBlock);
+        expression.Right.Accept(this);
+        ForwardJumpBackpatch skipTrue = _builder.AppendForwardJump(InstructionCode.Jump);
+        _builder.InsertPoint = trueBlock;
+        _builder.Append(new Instruction(InstructionCode.Push, new Value(true)));
+        BasicBlock endBlock = _builder.CreateBasicBlock();
+        _builder.BackpatchForwardJump(skipTrue, endBlock);
+        _builder.InsertPoint = endBlock;
     }
 
     private void PushScope()
@@ -198,6 +287,12 @@ public sealed class MinionVmCodegen : IAstVisitor
             BinaryOperator.Divide => InstructionCode.Divide,
             BinaryOperator.Modulo => InstructionCode.Modulo,
             BinaryOperator.Power => InstructionCode.Power,
+            BinaryOperator.Equal => InstructionCode.Equal,
+            BinaryOperator.NotEqual => InstructionCode.NotEqual,
+            BinaryOperator.Less => InstructionCode.Less,
+            BinaryOperator.LessOrEqual => InstructionCode.LessOrEqual,
+            BinaryOperator.And or BinaryOperator.Or =>
+                throw new NotSupportedException($"Оператор {op} требует кодогенерации с переходами."),
             _ => throw new NotSupportedException($"Оператор {op}."),
         };
     }

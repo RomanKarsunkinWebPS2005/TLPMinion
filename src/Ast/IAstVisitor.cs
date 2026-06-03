@@ -14,9 +14,13 @@ public interface IAstVisitor
 
     void Visit(BinaryExpression expression);
 
+    void Visit(ConditionalExpression expression);
+
     void Visit(FunctionCallExpression expression);
 
     void Visit(IdentifierExpression expression);
+
+    void Visit(IfStatement statement);
 
     void Visit(InputStatement statement);
 

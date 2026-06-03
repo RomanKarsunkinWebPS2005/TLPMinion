@@ -8,4 +8,12 @@ public enum BinaryOperator
     Divide,
     Modulo,
     Power,
+    Equal,
+    NotEqual,
+    Less,
+    LessOrEqual,
+    Greater,
+    GreaterOrEqual,
+    And,
+    Or,
 }

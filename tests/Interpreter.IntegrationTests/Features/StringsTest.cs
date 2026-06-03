@@ -207,4 +207,34 @@ public sealed class StringsTest
             _ = interpreter.Execute("""const n: Int = length("a");""");
         });
     }
+
+    [CulturedTheory(["ru-RU", "en-US"])]
+    [MemberData(nameof(GetStringOrderingResults))]
+    public void Can_compare_strings_lexicographically(string code, string expected)
+    {
+        FakeEnvironment environment = new();
+        MinionInterpreter interpreter = new(environment);
+        _ = interpreter.Execute(code);
+        Assert.Equal(expected, environment.OutputBuffer);
+        Assert.Equal(0, interpreter.ExitCode);
+    }
+
+    public static TheoryData<string, string> GetStringOrderingResults()
+    {
+        return new TheoryData<string, string>
+        {
+            { """print("a" < "b");""", "true" },
+            { """print("b" > "a");""", "true" },
+            { """print("a" <= "a");""", "true" },
+            { """print("b" >= "a");""", "true" },
+            { """print("a" == "a");""", "true" },
+            { """print("a" != "b");""", "true" },
+            { """print("A" < "a");""", "true" },
+            { """print("A" > "a");""", "false" },
+            { """print("ab" < "b");""", "true" },
+            { """print("ab" > "a");""", "true" },
+            { """print("а" < "я");""", "true" },
+            { """print("a" < "🙂");""", "true" },
+        };
+    }
 }

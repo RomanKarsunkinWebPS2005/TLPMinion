@@ -14,6 +14,7 @@ public static class Builtins
     public const string Int = "Int";
     public const string Float = "Float";
     public const string String = "String";
+    public const string Bool = "Bool";
     public const string Void = "Void";
 
     /// <summary>Список встроенных функций.</summary>

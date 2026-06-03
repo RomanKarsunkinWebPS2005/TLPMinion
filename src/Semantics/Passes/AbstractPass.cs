@@ -29,12 +29,26 @@ public abstract class AbstractPass : IAstVisitor
         expression.Right.Accept(this);
     }
 
+    public virtual void Visit(ConditionalExpression expression)
+    {
+        expression.Condition.Accept(this);
+        expression.WhenTrue.Accept(this);
+        expression.WhenFalse.Accept(this);
+    }
+
     public virtual void Visit(FunctionCallExpression expression)
     {
         foreach (Expression argument in expression.Arguments)
         {
             argument.Accept(this);
         }
+    }
+
+    public virtual void Visit(IfStatement statement)
+    {
+        statement.Condition.Accept(this);
+        statement.ThenBranch.Accept(this);
+        statement.ElseBranch?.Accept(this);
     }
 
     public virtual void Visit(InputStatement statement)

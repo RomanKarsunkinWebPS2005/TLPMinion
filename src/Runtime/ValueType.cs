@@ -6,4 +6,5 @@ public enum ValueType
     Float,
     String,
     Void,
+    Bool,
 }
