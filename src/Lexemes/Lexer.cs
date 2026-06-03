@@ -18,6 +18,11 @@ public class Lexer
         { "Float", TokenType.TypeFloat },
         { "String", TokenType.TypeString },
         { "Void", TokenType.TypeVoid },
+        { "Bool", TokenType.TypeBool },
+        { "true", TokenType.True },
+        { "false", TokenType.False },
+        { "if", TokenType.If },
+        { "else", TokenType.Else },
     };
 
     private static readonly Dictionary<char, char> SimpleEscapes = new()
@@ -90,7 +95,61 @@ public class Lexer
                 return new Token(TokenType.CloseBrace);
             case '=':
                 _scanner.Advance();
+                if (!IsEndChar() && _scanner.Peek() == '=')
+                {
+                    _scanner.Advance();
+                    return new Token(TokenType.Equal);
+                }
+
                 return new Token(TokenType.Assign);
+            case '!':
+                _scanner.Advance();
+                if (!IsEndChar() && _scanner.Peek() == '=')
+                {
+                    _scanner.Advance();
+                    return new Token(TokenType.NotEqual);
+                }
+
+                return new Token(TokenType.Not);
+            case '<':
+                _scanner.Advance();
+                if (!IsEndChar() && _scanner.Peek() == '=')
+                {
+                    _scanner.Advance();
+                    return new Token(TokenType.LessOrEqual);
+                }
+
+                return new Token(TokenType.Less);
+            case '>':
+                _scanner.Advance();
+                if (!IsEndChar() && _scanner.Peek() == '=')
+                {
+                    _scanner.Advance();
+                    return new Token(TokenType.GreaterOrEqual);
+                }
+
+                return new Token(TokenType.Greater);
+            case '&':
+                _scanner.Advance();
+                if (!IsEndChar() && _scanner.Peek() == '&')
+                {
+                    _scanner.Advance();
+                    return new Token(TokenType.And);
+                }
+
+                return new Token(TokenType.Error, "Неизвестный токен: &");
+            case '|':
+                _scanner.Advance();
+                if (!IsEndChar() && _scanner.Peek() == '|')
+                {
+                    _scanner.Advance();
+                    return new Token(TokenType.Or);
+                }
+
+                return new Token(TokenType.Error, "Неизвестный токен: |");
+            case '?':
+                _scanner.Advance();
+                return new Token(TokenType.Question);
             case '+':
                 _scanner.Advance();
                 return new Token(TokenType.Plus);
