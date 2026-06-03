@@ -139,6 +139,19 @@ public sealed class TypeCheckingPass : AbstractPass
         expression.ResultType = TypeHelpers.ToValueType(builtin.ReturnTypeName);
     }
 
+    public override void Visit(IfStatement statement)
+    {
+        statement.Condition.Accept(this);
+        statement.ThenBranch.Accept(this);
+        statement.ElseBranch?.Accept(this);
+        if (statement.Condition.ResultType != VType.Bool)
+        {
+            throw new InvalidOperationException("Условие if должно иметь тип Bool.");
+        }
+
+        statement.ResultType = VType.Void;
+    }
+
     public override void Visit(InputStatement statement)
     {
         statement.Target.Accept(this);

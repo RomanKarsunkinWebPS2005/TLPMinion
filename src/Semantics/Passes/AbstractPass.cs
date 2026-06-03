@@ -44,6 +44,13 @@ public abstract class AbstractPass : IAstVisitor
         }
     }
 
+    public virtual void Visit(IfStatement statement)
+    {
+        statement.Condition.Accept(this);
+        statement.ThenBranch.Accept(this);
+        statement.ElseBranch?.Accept(this);
+    }
+
     public virtual void Visit(InputStatement statement)
     {
         statement.Target.Accept(this);

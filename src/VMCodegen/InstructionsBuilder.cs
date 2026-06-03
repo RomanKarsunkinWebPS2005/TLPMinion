@@ -72,6 +72,28 @@ public sealed class InstructionsBuilder
         _insertPoint.Append(new Instruction(code, target.Id));
     }
 
+    public ForwardJumpBackpatch AppendForwardJump(InstructionCode code)
+    {
+        if (!IsJump(code))
+        {
+            throw new InvalidOperationException($"Инструкция {code} не является переходом.");
+        }
+
+        _insertPoint.Append(new Instruction(code, -1));
+        return new ForwardJumpBackpatch(_insertPoint, _insertPoint.Instructions.Count - 1);
+    }
+
+    public void BackpatchForwardJump(ForwardJumpBackpatch patch, BasicBlock target)
+    {
+        if (!ReferenceEquals(_basicBlocks[patch.Block.Id], patch.Block))
+        {
+            throw new InvalidOperationException("Базовый блок не принадлежит текущему построителю инструкций.");
+        }
+
+        Instruction instruction = patch.Block.Instructions[patch.InstructionIndex];
+        patch.Block.Instructions[patch.InstructionIndex] = new Instruction(instruction.Code, target.Id);
+    }
+
     public BasicBlock CreateBasicBlock()
     {
         BasicBlock block = new(_basicBlocks.Count);

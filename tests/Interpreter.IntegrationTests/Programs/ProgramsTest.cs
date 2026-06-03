@@ -21,6 +21,8 @@ public class ProgramsTest
             { "smoke.minion", "", 0 },
             { "print_literal.minion", "423.143549", 0 },
             { "string_concat.minion", "abcd", 0 },
+            { "if_branches.minion", "pass", 0 },
+            { "if_branches_else_if.minion", "pass", 0 },
         };
     }
 }

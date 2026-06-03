@@ -20,6 +20,8 @@ public interface IAstVisitor
 
     void Visit(IdentifierExpression expression);
 
+    void Visit(IfStatement statement);
+
     void Visit(InputStatement statement);
 
     void Visit(LiteralExpression expression);

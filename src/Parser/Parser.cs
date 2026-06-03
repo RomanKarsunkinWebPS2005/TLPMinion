@@ -86,6 +86,11 @@ public class Parser
 
     private Expression ParseStatementExpression()
     {
+        if (Is(TokenType.If))
+        {
+            return ParseIfStatement();
+        }
+
         if (Match(TokenType.OpenBrace))
         {
             return ParseScopeBody();
@@ -126,6 +131,29 @@ public class Parser
         string name = ExpectIdentifier();
         Expect(TokenType.CloseParenthesis);
         return new InputStatement(new IdentifierExpression(name));
+    }
+
+    private IfStatement ParseIfStatement()
+    {
+        Expect(TokenType.If);
+        Expect(TokenType.OpenParenthesis);
+        Expression condition = ParseExpression();
+        Expect(TokenType.CloseParenthesis);
+        ScopeExpression thenBranch = ParseBlock();
+
+        Expression? elseBranch = null;
+        if (Match(TokenType.Else))
+        {
+            elseBranch = Is(TokenType.If) ? ParseIfStatement() : ParseBlock();
+        }
+
+        return new IfStatement(condition, thenBranch, elseBranch);
+    }
+
+    private ScopeExpression ParseBlock()
+    {
+        Expect(TokenType.OpenBrace);
+        return ParseScopeBody();
     }
 
     private ScopeExpression ParseScopeBody()
