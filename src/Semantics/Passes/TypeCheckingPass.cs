@@ -83,8 +83,29 @@ public sealed class TypeCheckingPass : AbstractPass
                 TypeHelpers.SameNumericArithmeticType(l, r),
             BinaryOperator.Modulo => TypeHelpers.ModuloType(l, r),
             BinaryOperator.Power => TypeHelpers.PowerType(l, r),
+            BinaryOperator.Equal or BinaryOperator.NotEqual => TypeHelpers.SameEqualityOperandType(l, r),
+            BinaryOperator.Less or BinaryOperator.LessOrEqual or BinaryOperator.Greater or BinaryOperator.GreaterOrEqual =>
+                TypeHelpers.SameOrderingOperandType(l, r),
+            BinaryOperator.And or BinaryOperator.Or => TypeHelpers.LogicalOperandType(l, r),
             _ => throw new InvalidOperationException($"Неизвестный оператор: {expression.Operator}"),
         };
+    }
+
+    public override void Visit(ConditionalExpression expression)
+    {
+        expression.Condition.Accept(this);
+        expression.WhenTrue.Accept(this);
+        expression.WhenFalse.Accept(this);
+        if (expression.Condition.ResultType != VType.Bool)
+        {
+            throw new InvalidOperationException("Условие тернарного оператора должно иметь тип Bool.");
+        }
+
+        TypeHelpers.AssertAssignable(
+            expression.WhenTrue.ResultType,
+            expression.WhenFalse.ResultType,
+            "ветви тернарного оператора");
+        expression.ResultType = expression.WhenTrue.ResultType;
     }
 
     public override void Visit(FunctionCallExpression expression)
@@ -146,9 +167,9 @@ public sealed class TypeCheckingPass : AbstractPass
     {
         statement.Argument.Accept(this);
         VType t = statement.Argument.ResultType;
-        if (t != VType.Int && t != VType.Float && t != VType.String)
+        if (t != VType.Int && t != VType.Float && t != VType.String && t != VType.Bool)
         {
-            throw new InvalidOperationException("print ожидает аргумент типа Int, Float или String.");
+            throw new InvalidOperationException("print ожидает аргумент типа Int, Float, String или Bool.");
         }
 
         statement.ResultType = VType.Void;
@@ -168,12 +189,15 @@ public sealed class TypeCheckingPass : AbstractPass
     {
         expression.Operand.Accept(this);
         VType t = expression.Operand.ResultType;
-        if (t != VType.Int && t != VType.Float)
+        expression.ResultType = expression.Operator switch
         {
-            throw new InvalidOperationException("Унарный + и - определены только для чисел.");
-        }
-
-        expression.ResultType = t;
+            UnaryOperator.Plus or UnaryOperator.Minus when t is VType.Int or VType.Float => t,
+            UnaryOperator.Not when t == VType.Bool => VType.Bool,
+            UnaryOperator.Plus or UnaryOperator.Minus =>
+                throw new InvalidOperationException("Унарный + и - определены только для чисел."),
+            UnaryOperator.Not => throw new InvalidOperationException("Унарный ! определён только для Bool."),
+            _ => throw new InvalidOperationException($"Неизвестный унарный оператор: {expression.Operator}"),
+        };
     }
 
     private static BuiltinFunction? FindBuiltin(string name)

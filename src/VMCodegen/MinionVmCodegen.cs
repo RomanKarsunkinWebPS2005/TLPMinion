@@ -71,6 +71,11 @@ public sealed class MinionVmCodegen : IAstVisitor
         _builder.Append(new Instruction(MapBinary(expression.Operator)));
     }
 
+    public void Visit(ConditionalExpression expression)
+    {
+        throw new NotSupportedException("Тернарный оператор ? : пока не поддержан");
+    }
+
     public void Visit(FunctionCallExpression expression)
     {
         if (expression.Function is not BuiltinFunction)

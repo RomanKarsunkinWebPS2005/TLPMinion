@@ -23,6 +23,11 @@ public sealed class Value : IEquatable<Value>
         _value = value;
     }
 
+    public Value(bool value)
+    {
+        _value = value;
+    }
+
     private Value(object value)
     {
         _value = value;
@@ -35,6 +40,8 @@ public sealed class Value : IEquatable<Value>
     public bool IsDouble() => _value is double;
 
     public bool IsString() => _value is string;
+
+    public bool IsBool() => _value is bool;
 
     public int AsInt()
     {
@@ -65,6 +72,15 @@ public sealed class Value : IEquatable<Value>
         };
     }
 
+    public bool AsBool()
+    {
+        return _value switch
+        {
+            bool b => b,
+            _ => throw new InvalidOperationException($"Значение не Bool: {_value}"),
+        };
+    }
+
     public string ToDisplayString()
     {
         return _value switch
@@ -72,6 +88,7 @@ public sealed class Value : IEquatable<Value>
             int i => i.ToString(CultureInfo.InvariantCulture),
             double d => d.ToString(CultureInfo.InvariantCulture),
             VoidValue => "<void>",
+            bool b => b ? "true" : "false",
             string s => s,
             _ => _value.ToString() ?? string.Empty,
         };
@@ -89,6 +106,7 @@ public sealed class Value : IEquatable<Value>
             int i => other._value is int oi && i == oi,
             double d => other._value is double od && Math.Abs(d - od) < double.Epsilon,
             VoidValue => other._value is VoidValue,
+            bool b => other._value is bool ob && b == ob,
             string s => other._value is string os && s == os,
             _ => ReferenceEquals(_value, other._value),
         };

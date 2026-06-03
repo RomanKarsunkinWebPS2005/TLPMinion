@@ -29,7 +29,8 @@ public sealed class CompileTimeConstantPass : AbstractPass
                 Builtins.Int => new Value(int.Parse(lit.Lexeme, CultureInfo.InvariantCulture)),
                 Builtins.Float => new Value(double.Parse(lit.Lexeme, CultureInfo.InvariantCulture)),
                 Builtins.String => new Value(lit.Lexeme),
-                _ => throw new InvalidOperationException("В const допускаются только литералы Int, Float и String."),
+                Builtins.Bool => new Value(lit.Lexeme == "true"),
+                _ => throw new InvalidOperationException("В const допускаются только литералы Int, Float, String и Bool."),
             },
             IdentifierExpression id => EvalConstRef(id),
             UnaryExpression u => EvalUnary(u),
@@ -55,6 +56,11 @@ public sealed class CompileTimeConstantPass : AbstractPass
         if (v.IsString())
         {
             return VType.String;
+        }
+
+        if (v.IsBool())
+        {
+            return VType.Bool;
         }
 
         throw new InvalidOperationException("Неподдерживаемое значение в const.");
